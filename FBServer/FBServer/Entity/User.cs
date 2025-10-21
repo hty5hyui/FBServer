@@ -1,0 +1,166 @@
+﻿namespace FBServer.Entity
+{
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+
+    public class User
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("user_id")]
+        public int UserId { get; set; }
+            
+        [Column("avatar")]
+        public string? Avatar { get; set; }
+
+        [Column("fio")]
+        public string? Fio { get; set; }
+
+        [Column("subscribers")]
+        public string? Subscribers { get; set; }
+
+        [Column("work")]
+        public string? Work { get; set; }
+
+        [Column("university")]
+        public string? University { get; set; }
+
+        [Column("school")]
+        public string? School { get; set; }
+
+        [Column("home")]
+        public string? Home { get; set; }
+
+        [Column("city")]
+        public string? City { get; set; }
+
+        [Column("another_city")]
+        public string? AnotherCity { get; set; }
+
+        [Column("address")]
+        public string? Address { get; set; }
+
+        [Column("mobile")]
+        public string? Mobile { get; set; }
+
+        [Column("email")]
+        public string? Email { get; set; }
+
+        [Column("another_contact_info")]
+        public string? AnotherContactInfo { get; set; }
+
+        [Column("whatsapp")]
+        public string? Whatsapp { get; set; }
+
+        [Column("site")]
+        public string? Site { get; set; }
+
+        [Column("another_web_socialmedia")]
+        public string? AnotherWebSocialmedia { get; set; }
+
+        [Column("male")]
+        public string? Male { get; set; }
+
+        [Column("language")]
+        public string? Language { get; set; }
+
+        [Column("opening_hours")]
+        public string? OpeningHours { get; set; }
+
+        [Column("pronouns_in_the_system")]
+        public string? PronounsInTheSystem { get; set; }
+
+        [Column("another_basic_information")]
+        public string? AnotherBasicInformation { get; set; }
+
+        [Column("category")]
+        public string? Category { get; set; }
+
+        [Column("page_id")]
+        public string? PageId { get; set; }
+
+        [Column("date_of_creation")]
+        public string? DateOfCreation { get; set; }
+
+        [Column("reklama")]
+        public string? Reklama { get; set; }
+
+        [Column("info")]
+        public string? Info { get; set; }
+
+        [Column("another")]
+        public string? Another { get; set; }
+
+        [Column("link")]
+        public string? Link { get; set; }
+
+        [Column("work1")]
+        public string? Work1 { get; set; }
+
+        [Column("university1")]
+        public string? University1 { get; set; }
+
+        [Column("school1")]
+        public string? School1 { get; set; }
+
+        [Column("vk")]
+        public string? Vk { get; set; }
+
+        [Column("instagram")]
+        public string? Instagram { get; set; }
+
+        [Column("skype")]
+        public string? Skype { get; set; }
+
+        [Column("linkedin")]
+        public string? Linkedin { get; set; }
+
+        [Column("check_link")]
+        public int? CheckLink { get; set; }
+
+        [Column("spotify")]
+        public string? Spotify { get; set; }
+
+        [Column("kakaotalk")]
+        public string? Kakaotalk { get; set; }
+
+        [Column("youtube")]
+        public string? Youtube { get; set; }
+
+        [Column("x")]
+        public string? X { get; set; }
+
+        [Column("tiktok")]
+        public string? Tiktok { get; set; }
+
+        [Column("snapchat")]
+        public string? Snapchat { get; set; }
+
+        [Column("wechat")]
+        public string? Wechat { get; set; }
+
+        [Column("threads")]
+        public string? Threads { get; set; }
+
+        [Column("line")]
+        public string? Line { get; set; }
+
+        [Column("twitch")]
+        public string? Twitch { get; set; }
+
+        [Column("askfm")]
+        public string? Askfm { get; set; }
+
+        [Column("pinterest")]
+        public string? Pinterest { get; set; }
+
+        [Column("soundcloud")]
+        public string? Soundcloud { get; set; }
+
+        [Column("ok")]
+        public string? Ok { get; set; }
+
+        [Column("avatar_byte")]
+        public byte[]? AvatarByte { get; set; }
+    }
+}

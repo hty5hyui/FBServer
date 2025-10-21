@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База данных - Dashboard</title>
+<link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 min-h-screen text-white">
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+    
+    <custom-navbar></custom-navbar>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold">База данных</h1>
+            <a href="/" class="btn-primary">Назад на главную</a>
+        </div>
+
+        <div class="bg-dark-800/50 backdrop-blur-lg rounded-2xl p-6 border border-dark-700">
+            <p class="text-dark-300 text-center py-8">Страница в разработке</p>
+        </div>
+    </main>
+
+    <custom-footer></custom-footer>
+
+    <script src="script.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

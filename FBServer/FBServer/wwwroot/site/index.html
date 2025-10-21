@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+<link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 min-h-screen text-white">
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+    
+    <custom-navbar></custom-navbar>
+    <main class="container mx-auto px-4 py-8">
+        <!-- Навигационные карточки -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="card hover:scale-105 cursor-pointer transition-all duration-300">
+                <div class="card-icon bg-blue-500/20 text-blue-400">
+                    <i data-feather="file-text"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Управление скриптами</h3>
+                <p class="text-dark-300 mb-4">Создание и управление скриптами</p>
+                <a href="scripts.html" class="btn-primary inline-block">Перейти</a>
+            </div>
+
+            <div class="card hover:scale-105 cursor-pointer transition-all duration-300">
+                <div class="card-icon bg-green-500/20 text-green-400">
+                    <i data-feather="database"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">База данных</h3>
+                <p class="text-dark-300 mb-4">Управление подключениями к БД</p>
+                <a href="database.html" class="btn-primary inline-block">Перейти</a>
+            </div>
+
+            <div class="card hover:scale-105 cursor-pointer transition-all duration-300">
+                <div class="card-icon bg-yellow-500/20 text-yellow-400">
+                    <i data-feather="server"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Управление сервером</h3>
+                <p class="text-dark-300 mb-4">Мониторинг и управление сервером</p>
+                <a href="server.html" class="btn-primary inline-block">Перейти</a>
+            </div>
+        </div>
+
+        <!-- Статус системы -->
+        <div class="bg-dark-800/50 backdrop-blur-lg rounded-2xl p-8 border border-dark-700">
+<div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">Статус системы</h2>
+                <div class="flex items-center space-x-2 text-dark-300">
+                    <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                    <span class="text-sm">Обновляется каждые 5 сек</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Количество скриптов -->
+                <div class="status-card">
+                    <div class="status-icon bg-blue-500/20 text-blue-400">
+                        <i data-feather="file-text"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm text-dark-300 mb-1">Скрипты</h3>
+                        <div class="flex items-baseline space-x-1">
+                            <span id="scryptCount" class="text-2xl font-bold">0</span>
+                            <span class="text-sm text-dark-400">активных</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Подключения к БД -->
+                <div class="status-card">
+                    <div class="status-icon bg-green-500/20 text-green-400">
+                        <i data-feather="database"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm text-dark-300 mb-1">Подключения БД</h3>
+                        <div class="flex items-baseline space-x-1">
+                            <span id="dbConnection" class="text-2xl font-bold">0</span>
+                            <span class="text-sm text-dark-400">активных</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Загрузка CPU -->
+                <div class="status-card">
+                    <div class="status-icon bg-yellow-500/20 text-yellow-400">
+                        <i data-feather="cpu"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm text-dark-300 mb-1">Загрузка CPU</h3>
+                        <div class="flex items-baseline space-x-1">
+                            <span id="cpuLoad" class="text-2xl font-bold">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Загрузка ОЗУ -->
+                <div class="status-card">
+                    <div class="status-icon bg-red-500/20 text-red-400">
+                        <i data-feather="hard-drive"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm text-dark-300 mb-1">Загрузка ОЗУ</h3>
+                        <div class="flex items-baseline space-x-1">
+                            <span id="ozuLoad" class="text-2xl font-bold">0%</span>
+                    </div>
+                </div>
+</div>
+        </div>
+</main>
+
+    <custom-footer></custom-footer>
+
+    <script src="script.js"></script>
+    <script>
+        feather.replace();
+        
+        // Инициализация обновления статуса
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSystemStatus();
+            setInterval(updateSystemStatus, 5000);
+        });
+    </script>
+<script src="https://deepsite.hf.co/deepsite-badge.js"></script>
+</body>
+</html>
