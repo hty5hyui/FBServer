@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace FBServer.Entity
+namespace FBServer.Entity.db
 {
     public class Friendship
     {

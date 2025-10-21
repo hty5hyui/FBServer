@@ -1,4 +1,7 @@
+using FBServer.Controller;
 using FBServer.Entity;
+using FBServer.Repo;
+using FBServer.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authorization;
@@ -13,6 +16,15 @@ builder.Services.AddDbContext<AppDbFBContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionStudent"));
 });
+
+
+//-----------------------DI-----------------------------------------------------
+builder.Services.AddScoped<SystemInfoRepo>();
+builder.Services.AddScoped<SystemStatusService>();
+builder.Services.AddScoped<StatusController>();
+//------------------------------------------------------------------------------
+
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

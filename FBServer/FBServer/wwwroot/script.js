@@ -65,12 +65,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // Обновление статуса каждые 5 секунд
-    setInterval(updateSystemStatus, 5000);
-    
-    // Первоначальное обновление
-    updateSystemStatus();
 });
 
 // Функция для форматирования чисел

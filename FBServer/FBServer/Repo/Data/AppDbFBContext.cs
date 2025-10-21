@@ -1,4 +1,4 @@
-﻿using FBServer.Entity;
+﻿using FBServer.Entity.db;
 using Microsoft.EntityFrameworkCore;
 
 public class AppDbFBContext : DbContext

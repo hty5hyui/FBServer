@@ -1,4 +1,4 @@
-﻿namespace FBServer.Entity
+﻿namespace FBServer.Entity.db
 {
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
