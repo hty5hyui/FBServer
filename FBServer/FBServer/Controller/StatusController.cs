@@ -9,10 +9,17 @@ namespace FBServer.Controller
     public class StatusController(SystemStatusService systemStatus):ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> getSystemStatus()
+        public async Task<IActionResult> GetSystemStatus()
         {
-            SystemInfo systemInfo = await systemStatus.GetSystemInfo();
-            return new JsonResult(systemInfo);
+            try
+            {
+                SystemInfo systemInfo = await systemStatus.GetSystemInfo();
+                return new JsonResult(systemInfo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения статуса системы: {ex.Message}");
+            }  
         }
     }
 }

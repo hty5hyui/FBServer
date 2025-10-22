@@ -1,6 +1,7 @@
 using FBServer.Controller;
 using FBServer.Entity;
 using FBServer.Repo;
+using FBServer.Repo.Data;
 using FBServer.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -12,16 +13,26 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
 builder.Services.AddDbContext<AppDbFBContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionStudent"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionPostgres"));
 });
 
+builder.Services.AddDbContext<AppDbSqliteContext>(options =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DbConnectionSqlite"));
+});
 
 //-----------------------DI-----------------------------------------------------
 builder.Services.AddScoped<SystemInfoRepo>();
 builder.Services.AddScoped<SystemStatusService>();
 builder.Services.AddScoped<StatusController>();
+
+builder.Services.AddScoped<ScriptRepo>();
+builder.Services.AddScoped<ScriptService>();
+builder.Services.AddScoped<ScriptController>();
+
 //------------------------------------------------------------------------------
 
 
@@ -91,7 +102,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Student API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Script v1");
         c.RoutePrefix = "swagger";
     });
 }
