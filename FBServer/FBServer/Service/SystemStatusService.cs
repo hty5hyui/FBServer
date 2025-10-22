@@ -35,7 +35,7 @@ namespace FBServer.Service
             readOnly: true))
             {
                 float availableMemoryMb = pc.NextValue();
-                float totalMemoryMb = GetTotalMemoryInMb(); // См. метод ниже
+                float totalMemoryMb = GetTotalMemoryInMb();
                 float usedMemoryMb = totalMemoryMb - availableMemoryMb;
                 return (int)((usedMemoryMb / totalMemoryMb) * 100);
             }

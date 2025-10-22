@@ -54,5 +54,3 @@ class CustomFooter extends HTMLElement {
     `;
   }
 }
-
-customElements.define('custom-footer', CustomFooter);

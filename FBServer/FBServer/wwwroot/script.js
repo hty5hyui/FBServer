@@ -3,6 +3,7 @@
 // Функция для обновления статуса системы
 async function updateSystemStatus() {
     try {
+        console.log('Отправка запроса на получение статуса...');
         const response = await fetch('http://localhost:5253/status');
         
         if (!response.ok) {
@@ -10,23 +11,25 @@ async function updateSystemStatus() {
         }
         
         const data = await response.json();
+        console.log('Получены данные статуса:', data);
         
         // Обновление значений на странице
-        document.getElementById('scryptCount').textContent = data.scryptCount || 0;
-        document.getElementById('dbConnection').textContent = data.dbConnection || 0;
-        document.getElementById('cpuLoad').textContent = (data.cpuLoad || 0) + '%';
-        document.getElementById('ozuLoad').textContent = (data.ozuLoad || 0) + '%';
-        document.getElementById('memLoad').textContent = (data.memLoad || 0) + '%';
+        const scryptCountEl = document.getElementById('scryptCount');
+        const dbConnectionEl = document.getElementById('dbConnection');
+        const cpuLoadEl = document.getElementById('cpuLoad');
+        const ozuLoadEl = document.getElementById('ozuLoad');
         
-        // Обновление текстовых значений для метрик
-        document.getElementById('cpuLoadText').textContent = (data.cpuLoad || 0) + '%';
-        document.getElementById('ozuLoadText').textContent = (data.ozuLoad || 0) + '%';
-        document.getElementById('memLoadText').textContent = (data.memLoad || 0) + '%';
+        if (scryptCountEl) scryptCountEl.textContent = data.scryptCount || 0;
+        if (dbConnectionEl) dbConnectionEl.textContent = data.dbConnection || 0;
+        if (cpuLoadEl) cpuLoadEl.textContent = (data.cpuLoad || 0) + '%';
+        if (ozuLoadEl) ozuLoadEl.textContent = (data.ozuLoad || 0) + '%';
         
-        // Обновление индикаторов прогресса
-        document.getElementById('cpuBar').style.width = (data.cpuLoad || 0) + '%';
-        document.getElementById('ozuBar').style.width = (data.ozuLoad || 0) + '%';
-        document.getElementById('memBar').style.width = (data.memLoad || 0) + '%';
+        console.log('Статус обновлен:', {
+            scryptCount: data.scryptCount || 0,
+            dbConnection: data.dbConnection || 0,
+            cpuLoad: data.cpuLoad || 0,
+            ozuLoad: data.ozuLoad || 0
+        });
         
         // Добавление анимации обновления
         const statusCards = document.querySelectorAll('.status-card');
@@ -39,15 +42,15 @@ async function updateSystemStatus() {
         console.error('Ошибка при получении статуса:', error);
         
         // Показать состояние ошибки
-        const errorElements = document.querySelectorAll('#scryptCount, #dbConnection, #cpuLoad, #ozuLoad, #memLoad');
-        errorElements.forEach(element => {
-            element.textContent = element.id.includes('Load') ? '0%' : '0';
-        });
+        const scryptCountEl = document.getElementById('scryptCount');
+        const dbConnectionEl = document.getElementById('dbConnection');
+        const cpuLoadEl = document.getElementById('cpuLoad');
+        const ozuLoadEl = document.getElementById('ozuLoad');
         
-        // Сбросить индикаторы прогресса при ошибке
-        document.getElementById('cpuBar').style.width = '0%';
-        document.getElementById('ozuBar').style.width = '0%';
-        document.getElementById('memBar').style.width = '0%';
+        if (scryptCountEl) scryptCountEl.textContent = '0';
+        if (dbConnectionEl) dbConnectionEl.textContent = '0';
+        if (cpuLoadEl) cpuLoadEl.textContent = '0%';
+        if (ozuLoadEl) ozuLoadEl.textContent = '0%';
     }
 }
 

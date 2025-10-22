@@ -12,9 +12,6 @@ namespace FBServer.Controller
         public async Task<IActionResult> getSystemStatus()
         {
             SystemInfo systemInfo = await systemStatus.GetSystemInfo();
-
-            Console.WriteLine(systemInfo.cpuLoad);
-
             return new JsonResult(systemInfo);
         }
     }
