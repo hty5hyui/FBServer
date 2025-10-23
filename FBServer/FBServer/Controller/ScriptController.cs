@@ -13,7 +13,12 @@ namespace FBServer.Controller
         {
             try
             {
-                ScriptStatus status = await scriptService.GetScriptStatusAsync(id);
+                //ScriptStatus status = await scriptService.GetScriptStatusAsync(id);
+                ScriptStatus status = new ScriptStatus
+                {
+                    link = "https://github.com/aalhour/C-Sharp-Algorithms",
+                    started = true
+                };
                 return new JsonResult(status);
             }
             catch (Exception ex)
@@ -37,7 +42,7 @@ namespace FBServer.Controller
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddScript(ScriptParam param)
+        public async Task<IActionResult> AddScript([FromBody] ScriptParam param)
         {
             try
             {
@@ -55,7 +60,7 @@ namespace FBServer.Controller
         {
             try
             {
-                await scriptService.StopScriptAsync(id);
+                //await scriptService.StopScriptAsync(id);
                 return StatusCode(StatusCodes.Status200OK);
             }
             catch (Exception ex)
