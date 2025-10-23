@@ -37,5 +37,14 @@ namespace FBServer.Service
         {
             await repo.SetScriptAsync(scriptParam);
         }
+
+        public async Task DeleteScriptAsync(int idScript)
+        {
+            ScriptParam scriptParam = new ScriptParam
+            {
+                id = idScript
+            };
+            await repo.DeleteScriptAsync(scriptParam);
+        }
     }
 }

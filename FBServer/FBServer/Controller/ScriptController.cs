@@ -13,12 +13,7 @@ namespace FBServer.Controller
         {
             try
             {
-                //ScriptStatus status = await scriptService.GetScriptStatusAsync(id);
-                ScriptStatus status = new ScriptStatus
-                {
-                    link = "https://github.com/aalhour/C-Sharp-Algorithms",
-                    started = true
-                };
+                ScriptStatus status = await scriptService.GetScriptStatusAsync(id);
                 return new JsonResult(status);
             }
             catch (Exception ex)
@@ -60,7 +55,7 @@ namespace FBServer.Controller
         {
             try
             {
-                //await scriptService.StopScriptAsync(id);
+                await scriptService.StopScriptAsync(id);
                 return StatusCode(StatusCodes.Status200OK);
             }
             catch (Exception ex)
@@ -75,6 +70,20 @@ namespace FBServer.Controller
             try
             {
                 await scriptService.StartScriptsAsync(id, scriptStartParam);
+                return StatusCode(StatusCodes.Status200OK);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка запуска скрипта: {ex.Message}");
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteScript([FromQuery] int id)
+        {
+            try
+            {
+                await scriptService.DeleteScriptAsync(id);
                 return StatusCode(StatusCodes.Status200OK);
             }
             catch (Exception ex)

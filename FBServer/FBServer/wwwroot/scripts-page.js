@@ -93,6 +93,10 @@ function displayScripts(scripts) {
                         <i data-feather="activity" class="w-4 h-4"></i>
                         Статус
                     </button>
+                    <button class="script-btn script-delete bg-red-800 hover:bg-red-900 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors" data-script-id="${script.id}">
+                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                        Удалить
+                    </button>
                 </div>
             </div>
         </div>
@@ -110,6 +114,7 @@ function addScriptButtonHandlers() {
     const startButtons = document.querySelectorAll('.script-start');
     const stopButtons = document.querySelectorAll('.script-stop');
     const statusButtons = document.querySelectorAll('.script-status');
+    const deleteButtons = document.querySelectorAll('.script-delete');
     
     startButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -132,6 +137,14 @@ function addScriptButtonHandlers() {
             const scriptId = this.getAttribute('data-script-id');
             console.log('Проверка статуса скрипта:', scriptId);
             checkScriptStatus(scriptId);
+        });
+    });
+    
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const scriptId = this.getAttribute('data-script-id');
+            console.log('Удаление скрипта:', scriptId);
+            showDeleteConfirmation(scriptId);
         });
     });
 }
@@ -206,7 +219,7 @@ async function startScript(scriptId, url, depth) {
 async function stopScript(scriptId) {
     try {
         console.log('Остановка скрипта:', scriptId);
-        const response = await fetch('http://localhost:5253/Script/stop', {
+        const response = await fetch(`http://localhost:5253/Script/stop?id=${scriptId}`, {
             method: 'GET'
         });
         
@@ -255,6 +268,94 @@ function updateScriptStatus(scriptId, status) {
         indicator.className = 'status-indicator w-2 h-2 rounded-full bg-red-500';
         text.textContent = 'Не активен';
         text.className = 'status-text text-red-400';
+    }
+}
+
+// Функция для показа подтверждения удаления
+function showDeleteConfirmation(scriptId) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-dark-800 rounded-lg p-6 w-96">
+            <h3 class="text-xl font-semibold mb-4 text-red-400">Удаление скрипта</h3>
+            <p class="text-dark-300 mb-6">Вы уверены, что хотите удалить этот скрипт? Это действие нельзя отменить.</p>
+            <div class="flex gap-3">
+                <button id="confirmDelete" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Удалить</button>
+                <button id="cancelDelete" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">Отмена</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Обработчики событий
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        deleteScript(scriptId);
+        document.body.removeChild(modal);
+    });
+    
+    document.getElementById('cancelDelete').addEventListener('click', function() {
+        document.body.removeChild(modal);
+    });
+}
+
+// Функция для удаления скрипта
+async function deleteScript(scriptId) {
+    try {
+        console.log('Удаление скрипта:', scriptId);
+        const response = await fetch(`http://localhost:5253/Script?id=${scriptId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            console.log('Скрипт успешно удален');
+            loadScripts(); // Перезагрузить список скриптов
+        } else {
+            console.error('Ошибка удаления скрипта:', response.status);
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении скрипта:', error);
+    }
+}
+
+// Переменная для хранения интервала автоматического обновления
+let statusUpdateInterval = null;
+
+// Функция для запуска автоматического обновления статуса
+function startAutoStatusUpdate() {
+    // Остановить предыдущий интервал если он есть
+    if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+    }
+    
+    // Обновлять статус каждые 5 секунд
+    statusUpdateInterval = setInterval(async () => {
+        console.log('Автоматическое обновление статуса скриптов...');
+        
+        // Получить все скрипты и обновить их статус
+        const scriptCards = document.querySelectorAll('.script-card');
+        for (const card of scriptCards) {
+            const scriptId = card.getAttribute('data-script-id');
+            if (scriptId) {
+                try {
+                    const response = await fetch(`http://localhost:5253/Script/status?id=${scriptId}`);
+                    if (response.ok) {
+                        const status = await response.json();
+                        updateScriptStatus(scriptId, status);
+                    }
+                } catch (error) {
+                    console.error(`Ошибка обновления статуса скрипта ${scriptId}:`, error);
+                }
+            }
+        }
+    }, 5000); // Обновлять каждые 5 секунд
+}
+
+// Функция для остановки автоматического обновления
+function stopAutoStatusUpdate() {
+    if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+        statusUpdateInterval = null;
     }
 }
 
@@ -337,6 +438,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Загрузить скрипты
     loadScripts();
     
+    // Запустить автоматическое обновление статуса
+    startAutoStatusUpdate();
+    
     // Добавить обработчик для кнопки обновления
     const refreshButton = document.getElementById('refreshScripts');
     if (refreshButton) {
@@ -354,4 +458,9 @@ document.addEventListener('DOMContentLoaded', function() {
             showAddScriptForm();
         });
     }
+});
+
+// Остановить автоматическое обновление при уходе со страницы
+window.addEventListener('beforeunload', function() {
+    stopAutoStatusUpdate();
 });
