@@ -2,6 +2,7 @@
 
 let currentPage = 1;
 let totalPages = 1;
+let recordsPerPage = 50;
 
 // Функция для загрузки данных БД
 async function loadDatabaseData(page = 1) {
@@ -24,14 +25,27 @@ async function loadDatabaseData(page = 1) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
-        console.log('Получены данные БД:', data);
+        const responseData = await response.json();
+        console.log('Получены данные БД:', responseData);
+        
+        // Обновить информацию о пагинации
+        totalPages = responseData.pageCount || 1;
+        const userData = responseData.userPreviews || [];
+        
+        console.log('Обновлена информация о пагинации:', { 
+            currentPage, 
+            totalPages, 
+            userCount: userData.length 
+        });
         
         // Скрыть индикатор загрузки
         if (loadingIndicator) loadingIndicator.classList.add('hidden');
         
         // Отобразить данные в таблице
-        displayDatabaseData(data);
+        displayDatabaseData(userData);
+        
+        // Обновить пагинацию после загрузки данных
+        updatePagination();
         
     } catch (error) {
         console.error('Ошибка при загрузке данных БД:', error);
@@ -64,6 +78,7 @@ function displayDatabaseData(data) {
             <table class="w-full text-sm text-left">
                 <thead>
                     <tr>
+                        <th scope="col" class="w-16">№</th>
                         <th scope="col">ФИО</th>
                         <th scope="col">Ссылка</th>
                         <th scope="col">Подписчики</th>
@@ -73,8 +88,11 @@ function displayDatabaseData(data) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.map(item => `
+                    ${data.map((item, index) => {
+                        const recordNumber = (currentPage - 1) * recordsPerPage + index + 1;
+                        return `
                         <tr>
+                            <td class="text-center text-dark-400 font-medium">${recordNumber}</td>
                             <td class="font-medium text-white">${item.fio || 'Не указано'}</td>
                             <td>
                                 <a href="${item.link}" target="_blank" class="text-blue-400 hover:text-blue-300 underline">
@@ -91,7 +109,8 @@ function displayDatabaseData(data) {
                                 </button>
                             </td>
                         </tr>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </tbody>
             </table>
         </div>
@@ -99,6 +118,24 @@ function displayDatabaseData(data) {
     
     // Заменить иконки
     feather.replace();
+    
+    // Принудительно применить стили после обновления DOM
+    requestAnimationFrame(() => {
+        const table = tableContainer.querySelector('.database-table');
+        if (table) {
+            // Принудительно пересчитать стили
+            table.style.transform = 'translateZ(0)';
+            table.offsetHeight; // Принудительный reflow
+            table.style.transform = '';
+            
+            // Дополнительная проверка стилей
+            const computedStyle = window.getComputedStyle(table);
+            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+                table.style.display = 'block';
+                table.style.visibility = 'visible';
+            }
+        }
+    });
     
     // Добавить обработчики для кнопок обзора
     addViewButtonHandlers();
@@ -120,7 +157,12 @@ function addViewButtonHandlers() {
 // Функция для обновления пагинации
 function updatePagination() {
     const paginationContainer = document.getElementById('paginationContainer');
-    if (!paginationContainer) return;
+    if (!paginationContainer) {
+        console.error('Элемент paginationContainer не найден');
+        return;
+    }
+    
+    console.log('Обновление пагинации:', { currentPage, totalPages });
     
     paginationContainer.innerHTML = `
         <div class="pagination-container">
@@ -143,20 +185,53 @@ function updatePagination() {
     // Заменить иконки
     feather.replace();
     
-    // Добавить обработчики событий
-    document.getElementById('prevPage').addEventListener('click', function() {
-        if (currentPage > 1) {
-            currentPage--;
-            loadDatabaseData(currentPage);
+    // Принудительно применить стили после обновления пагинации
+    requestAnimationFrame(() => {
+        const pagination = paginationContainer.querySelector('.pagination-container');
+        if (pagination) {
+            // Принудительно пересчитать стили
+            pagination.style.transform = 'translateZ(0)';
+            pagination.offsetHeight; // Принудительный reflow
+            pagination.style.transform = '';
+            
+            // Дополнительная проверка стилей
+            const computedStyle = window.getComputedStyle(pagination);
+            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+                pagination.style.display = 'flex';
+                pagination.style.visibility = 'visible';
+            }
         }
     });
     
-    document.getElementById('nextPage').addEventListener('click', function() {
-        if (currentPage < totalPages) {
-            currentPage++;
-            loadDatabaseData(currentPage);
-        }
-    });
+    // Добавить обработчики событий
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+    
+    if (prevButton) {
+        prevButton.addEventListener('click', function() {
+            console.log('Нажата кнопка "Предыдущая"', { currentPage, totalPages });
+            if (currentPage > 1) {
+                currentPage--;
+                console.log('Переход на страницу:', currentPage);
+                loadDatabaseData(currentPage);
+            }
+        });
+    } else {
+        console.error('Кнопка "Предыдущая" не найдена');
+    }
+    
+    if (nextButton) {
+        nextButton.addEventListener('click', function() {
+            console.log('Нажата кнопка "Следующая"', { currentPage, totalPages });
+            if (currentPage < totalPages) {
+                currentPage++;
+                console.log('Переход на страницу:', currentPage);
+                loadDatabaseData(currentPage);
+            }
+        });
+    } else {
+        console.error('Кнопка "Следующая" не найдена');
+    }
     
 }
 
@@ -166,7 +241,4 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Загрузить данные БД
     loadDatabaseData(currentPage);
-    
-    // Обновить пагинацию
-    updatePagination();
 });

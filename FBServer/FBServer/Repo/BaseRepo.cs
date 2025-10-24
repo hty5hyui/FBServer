@@ -24,5 +24,12 @@ namespace FBServer.Repo
                                            })
                                            .ToListAsync();
         }
+
+        public async Task<int> GetPagePreviewCont()
+        {
+            int rowCount = await _dbContext.Users.CountAsync();
+            int result = (int)Math.Ceiling((double)rowCount/ pageSize);
+            return result;
+        }
     }
 }

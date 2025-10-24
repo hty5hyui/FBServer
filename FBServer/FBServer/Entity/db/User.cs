@@ -173,4 +173,10 @@
         public string? Mobile { get; set; }
         public string? Email { get; set; }
     }
+
+    public class UserPreviewPageData
+    {
+        public int pageCount { get; set; }
+        public List<UserPreview> userPreviews { get; set; }
+    }
 }

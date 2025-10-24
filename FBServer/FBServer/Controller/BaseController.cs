@@ -13,7 +13,7 @@ namespace FBServer.Controller
         {
             try
             {
-                List<UserPreview> userPreviews = await baseService.GetUserPreviewsAsync(page);
+                UserPreviewPageData userPreviews = await baseService.GetUserPreviewsAsync(page);
                 return new JsonResult(userPreviews);
             }
             catch(Exception ex) 
