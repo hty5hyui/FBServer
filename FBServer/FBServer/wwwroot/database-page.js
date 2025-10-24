@@ -1,12 +1,59 @@
 // Скрипт для страницы базы данных
 
-let currentPage = 1;
-let totalPages = 1;
-let recordsPerPage = 50;
+// Конфигурация
+const DB_CONFIG = {
+    baseUrl: 'http://localhost:5253',
+    recordsPerPage: 50,
+    cacheDuration: 60000, // 1 минута
+    retryAttempts: 3
+};
+
+// Состояние приложения
+const appState = {
+    currentPage: 1,
+    totalPages: 1,
+    cache: new Map(),
+    isLoading: false
+};
+
+// Функция для получения кэшированных данных
+function getCachedData(key) {
+    // Временно отключаем кэш для отладки
+    // const cached = appState.cache.get(key);
+    // if (cached && Date.now() - cached.timestamp < DB_CONFIG.cacheDuration) {
+    //     return cached.data;
+    // }
+    return null;
+}
+
+// Функция для сохранения в кэш
+function setCachedData(key, data) {
+    appState.cache.set(key, {
+        data,
+        timestamp: Date.now()
+    });
+}
 
 // Функция для загрузки данных БД
 async function loadDatabaseData(page = 1) {
+    if (appState.isLoading) return;
+    
     console.log('Загрузка данных БД, страница:', page);
+    
+    const cacheKey = `db_page_${page}`;
+    const cachedData = getCachedData(cacheKey);
+    
+    if (cachedData) {
+        console.log('Используем кэшированные данные');
+        appState.currentPage = page;
+        appState.totalPages = cachedData.pageCount || 1;
+        displayDatabaseData(cachedData.userPreviews || []);
+        updatePagination();
+        return;
+    }
+    
+    appState.isLoading = true;
+    appState.currentPage = page;
     
     const loadingIndicator = document.getElementById('loadingIndicator');
     const errorMessage = document.getElementById('errorMessage');
@@ -18,23 +65,23 @@ async function loadDatabaseData(page = 1) {
     if (tableContainer) tableContainer.innerHTML = '';
     
     try {
-        const response = await fetch(`http://localhost:5253/Base/all?page=${page}`);
+        console.log('Загружаем данные...');
+        const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/all?page=${page}`);
         console.log('Ответ сервера:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
         
         const responseData = await response.json();
         console.log('Получены данные БД:', responseData);
         
         // Обновить информацию о пагинации
-        totalPages = responseData.pageCount || 1;
+        appState.totalPages = responseData.pageCount || 1;
         const userData = responseData.userPreviews || [];
         
+        // Сохраняем в кэш
+        setCachedData(cacheKey, responseData);
+        
         console.log('Обновлена информация о пагинации:', { 
-            currentPage, 
-            totalPages, 
+            currentPage: appState.currentPage, 
+            totalPages: appState.totalPages, 
             userCount: userData.length 
         });
         
@@ -49,10 +96,66 @@ async function loadDatabaseData(page = 1) {
         
     } catch (error) {
         console.error('Ошибка при загрузке данных БД:', error);
-        
-        // Скрыть индикатор загрузки и показать ошибку
-        if (loadingIndicator) loadingIndicator.classList.add('hidden');
-        if (errorMessage) errorMessage.classList.remove('hidden');
+        console.error('Детали ошибки:', {
+            message: error.message,
+            stack: error.stack,
+            url: `${DB_CONFIG.baseUrl}/Base/all?page=${page}`
+        });
+        showErrorMessage(`Ошибка загрузки данных: ${error.message}. Проверьте подключение к серверу.`);
+    } finally {
+        appState.isLoading = false;
+    }
+}
+
+// Функция для retry запросов
+async function fetchWithRetry(url, retries = DB_CONFIG.retryAttempts) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            console.log(`Попытка ${i + 1}/${retries}: запрос к ${url}`);
+            
+            const response = await fetch(url, {
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+            }
+            
+            return response;
+        } catch (error) {
+            console.error(`Попытка ${i + 1} неудачна:`, error.message);
+            
+            if (i === retries - 1) {
+                // Если это последняя попытка, выбрасываем ошибку с более подробной информацией
+                if (error.name === 'AbortError') {
+                    throw new Error('Превышено время ожидания ответа от сервера');
+                } else if (error.message.includes('Failed to fetch')) {
+                    throw new Error('Не удается подключиться к серверу. Убедитесь, что сервер запущен на порту 5253');
+                } else {
+                    throw error;
+                }
+            }
+            
+            // Ждем перед следующей попыткой
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+    }
+}
+
+// Функция для показа сообщения об ошибке
+function showErrorMessage(message) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    if (errorMessage) {
+        errorMessage.querySelector('p').textContent = message;
+        errorMessage.classList.remove('hidden');
     }
 }
 
@@ -89,7 +192,7 @@ function displayDatabaseData(data) {
                 </thead>
                 <tbody>
                     ${data.map((item, index) => {
-                        const recordNumber = (currentPage - 1) * recordsPerPage + index + 1;
+                        const recordNumber = (appState.currentPage - 1) * DB_CONFIG.recordsPerPage + index + 1;
                         return `
                         <tr>
                             <td class="text-center text-dark-400 font-medium">${recordNumber}</td>
@@ -162,19 +265,22 @@ function updatePagination() {
         return;
     }
     
-    console.log('Обновление пагинации:', { currentPage, totalPages });
+    console.log('Обновление пагинации:', { 
+        currentPage: appState.currentPage, 
+        totalPages: appState.totalPages 
+    });
     
     paginationContainer.innerHTML = `
         <div class="pagination-container">
             <div class="flex items-center gap-2">
-                <button id="prevPage" class="pagination-button" ${currentPage <= 1 ? 'disabled' : ''}>
+                <button id="prevPage" class="pagination-button" ${appState.currentPage <= 1 ? 'disabled' : ''}>
                     <i data-feather="chevron-left" class="w-4 h-4"></i>
                     Предыдущая
                 </button>
                 <span class="text-dark-300 px-4">
-                    Страница ${currentPage} из ${totalPages}
+                    Страница ${appState.currentPage} из ${appState.totalPages}
                 </span>
-                <button id="nextPage" class="pagination-button" ${currentPage >= totalPages ? 'disabled' : ''}>
+                <button id="nextPage" class="pagination-button" ${appState.currentPage >= appState.totalPages ? 'disabled' : ''}>
                     Следующая
                     <i data-feather="chevron-right" class="w-4 h-4"></i>
                 </button>
@@ -185,60 +291,42 @@ function updatePagination() {
     // Заменить иконки
     feather.replace();
     
-    // Принудительно применить стили после обновления пагинации
-    requestAnimationFrame(() => {
-        const pagination = paginationContainer.querySelector('.pagination-container');
-        if (pagination) {
-            // Принудительно пересчитать стили
-            pagination.style.transform = 'translateZ(0)';
-            pagination.offsetHeight; // Принудительный reflow
-            pagination.style.transform = '';
-            
-            // Дополнительная проверка стилей
-            const computedStyle = window.getComputedStyle(pagination);
-            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
-                pagination.style.display = 'flex';
-                pagination.style.visibility = 'visible';
-            }
-        }
-    });
-    
     // Добавить обработчики событий
     const prevButton = document.getElementById('prevPage');
     const nextButton = document.getElementById('nextPage');
     
     if (prevButton) {
         prevButton.addEventListener('click', function() {
-            console.log('Нажата кнопка "Предыдущая"', { currentPage, totalPages });
-            if (currentPage > 1) {
-                currentPage--;
-                console.log('Переход на страницу:', currentPage);
-                loadDatabaseData(currentPage);
+            console.log('Нажата кнопка "Предыдущая"', { 
+                currentPage: appState.currentPage, 
+                totalPages: appState.totalPages 
+            });
+            if (appState.currentPage > 1) {
+                loadDatabaseData(appState.currentPage - 1);
             }
         });
-    } else {
-        console.error('Кнопка "Предыдущая" не найдена');
     }
     
     if (nextButton) {
         nextButton.addEventListener('click', function() {
-            console.log('Нажата кнопка "Следующая"', { currentPage, totalPages });
-            if (currentPage < totalPages) {
-                currentPage++;
-                console.log('Переход на страницу:', currentPage);
-                loadDatabaseData(currentPage);
+            console.log('Нажата кнопка "Следующая"', { 
+                currentPage: appState.currentPage, 
+                totalPages: appState.totalPages 
+            });
+            if (appState.currentPage < appState.totalPages) {
+                loadDatabaseData(appState.currentPage + 1);
             }
         });
-    } else {
-        console.error('Кнопка "Следующая" не найдена');
     }
-    
 }
+
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Страница базы данных загружена');
+    console.log('Состояние приложения:', appState);
     
     // Загрузить данные БД
-    loadDatabaseData(currentPage);
+    console.log('Запуск загрузки данных для страницы:', appState.currentPage);
+    loadDatabaseData(appState.currentPage);
 });

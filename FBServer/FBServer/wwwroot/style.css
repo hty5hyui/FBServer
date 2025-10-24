@@ -1,9 +1,33 @@
 /* Shared styles across all pages */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+:root {
+    --primary-color: #3B82F6;
+    --secondary-color: #10B981;
+    --dark-50: #f8fafc;
+    --dark-100: #f1f5f9;
+    --dark-200: #e2e8f0;
+    --dark-300: #cbd5e1;
+    --dark-400: #94a3b8;
+    --dark-500: #64748b;
+    --dark-600: #475569;
+    --dark-700: #334155;
+    --dark-800: #1e293b;
+    --dark-900: #0f172a;
+    --border-radius: 0.75rem;
+    --transition: all 0.3s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    background: linear-gradient(135deg, var(--dark-900) 0%, var(--dark-800) 50%, var(--dark-900) 100%);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
 
 /* Card styles */
@@ -11,9 +35,9 @@ body {
     background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(100, 116, 139, 0.3);
-    border-radius: 1rem;
+    border-radius: var(--border-radius);
     padding: 2rem;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     position: relative;
     overflow: hidden;
 }
@@ -456,6 +480,32 @@ body {
     outline: none;
     border-color: #3B82F6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Accessibility styles */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.error-state {
+    color: #ef4444 !important;
+    animation: pulse 1s infinite;
+}
+
+/* Focus styles for accessibility */
+.card:focus,
+button:focus,
+a:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 /* Responsive adjustments */

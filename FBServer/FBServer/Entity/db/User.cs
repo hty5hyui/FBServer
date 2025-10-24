@@ -164,6 +164,63 @@
         public byte[]? AvatarByte { get; set; }
     }
 
+
+    public class UserDTO
+    {
+        public int UserId { get; set; }
+        public string? Avatar { get; set; }
+        public string? Fio { get; set; }
+        public string? Subscribers { get; set; }
+        public string? Work { get; set; }
+        public string? University { get; set; }
+        public string? School { get; set; }
+        public string? Home { get; set; }
+        public string? City { get; set; }
+        public string? AnotherCity { get; set; }
+        public string? Address { get; set; }
+        public string? Mobile { get; set; }
+        public string? Email { get; set; }
+        public string? AnotherContactInfo { get; set; }
+        public string? Whatsapp { get; set; }
+        public string? Site { get; set; }
+        public string? AnotherWebSocialmedia { get; set; }
+        public string? Male { get; set; }
+        public string? Language { get; set; }
+        public string? OpeningHours { get; set; }
+        public string? PronounsInTheSystem { get; set; }
+        public string? AnotherBasicInformation { get; set; }
+        public string? Category { get; set; }
+        public string? PageId { get; set; }
+        public string? DateOfCreation { get; set; }
+        public string? Reklama { get; set; }
+        public string? Info { get; set; }
+        public string? Another { get; set; }
+        public string? Link { get; set; }
+        public string? Work1 { get; set; }
+        public string? University1 { get; set; }
+        public string? School1 { get; set; }
+        public string? Vk { get; set; }
+        public string? Instagram { get; set; }
+        public string? Skype { get; set; }
+        public string? Linkedin { get; set; }
+        public int? CheckLink { get; set; }
+        public string? Spotify { get; set; }
+        public string? Kakaotalk { get; set; }
+        public string? Youtube { get; set; }
+        public string? X { get; set; }
+        public string? Tiktok { get; set; }
+        public string? Snapchat { get; set; }
+        public string? Wechat { get; set; }
+        public string? Threads { get; set; }
+        public string? Line { get; set; }
+        public string? Twitch { get; set; }
+        public string? Askfm { get; set; }
+        public string? Pinterest { get; set; }
+        public string? Soundcloud { get; set; }
+        public string? Ok { get; set; }
+        public byte[]? AvatarByte { get; set; }
+    }
+
     public class UserPreview
     {
         public int UserId { get; set; }

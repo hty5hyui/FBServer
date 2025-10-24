@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -38,36 +37,40 @@
     <script src="components/footer.js"></script>
     
     <custom-navbar></custom-navbar>
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-8" role="main">
         <!-- Навигационные карточки -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div class="card hover:scale-105 cursor-pointer transition-all duration-300">
-                <div class="card-icon bg-blue-500/20 text-blue-400">
+        <section aria-labelledby="navigation-heading" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <h2 id="navigation-heading" class="sr-only">Навигация по разделам</h2>
+            <article class="card hover:scale-105 cursor-pointer transition-all duration-300" role="button" tabindex="0" aria-label="Перейти к управлению скриптами">
+                <div class="card-icon bg-blue-500/20 text-blue-400" aria-hidden="true">
                     <i data-feather="file-text"></i>
                 </div>
                 <h3 class="text-xl font-semibold mb-2">Управление скриптами</h3>
                 <p class="text-dark-300 mb-4">Создание и управление скриптами</p>
-                <a href="scripts.html" class="btn-primary inline-block">Перейти</a>
-            </div>
+                <a href="scripts.html" class="btn-primary inline-block" aria-describedby="scripts-desc">Перейти</a>
+                <span id="scripts-desc" class="sr-only">Открыть страницу управления скриптами</span>
+            </article>
 
-            <div class="card hover:scale-105 cursor-pointer transition-all duration-300">
-                <div class="card-icon bg-green-500/20 text-green-400">
+            <article class="card hover:scale-105 cursor-pointer transition-all duration-300" role="button" tabindex="0" aria-label="Перейти к управлению базой данных">
+                <div class="card-icon bg-green-500/20 text-green-400" aria-hidden="true">
                     <i data-feather="database"></i>
                 </div>
                 <h3 class="text-xl font-semibold mb-2">База данных</h3>
                 <p class="text-dark-300 mb-4">Управление подключениями к БД</p>
-                <a href="database.html" class="btn-primary inline-block">Перейти</a>
-            </div>
+                <a href="database.html" class="btn-primary inline-block" aria-describedby="database-desc">Перейти</a>
+                <span id="database-desc" class="sr-only">Открыть страницу управления базой данных</span>
+            </article>
 
-            <div class="card hover:scale-105 cursor-pointer transition-all duration-300">
-                <div class="card-icon bg-yellow-500/20 text-yellow-400">
+            <article class="card hover:scale-105 cursor-pointer transition-all duration-300" role="button" tabindex="0" aria-label="Перейти к управлению сервером">
+                <div class="card-icon bg-yellow-500/20 text-yellow-400" aria-hidden="true">
                     <i data-feather="server"></i>
                 </div>
                 <h3 class="text-xl font-semibold mb-2">Управление сервером</h3>
                 <p class="text-dark-300 mb-4">Мониторинг и управление сервером</p>
-                <a href="server.html" class="btn-primary inline-block">Перейти</a>
-            </div>
-        </div>
+                <a href="server.html" class="btn-primary inline-block" aria-describedby="server-desc">Перейти</a>
+                <span id="server-desc" class="sr-only">Открыть страницу управления сервером</span>
+            </article>
+        </section>
 
         <!-- Статус системы -->
         <div class="bg-dark-800/50 backdrop-blur-lg rounded-2xl p-8 border border-dark-700">
@@ -146,6 +149,5 @@
             setInterval(updateSystemStatus, 5000);
         });
     </script>
-<script src=""></script>
 </body>
 </html>

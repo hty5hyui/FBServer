@@ -49,7 +49,16 @@ class CustomFooter extends HTMLElement {
       </style>
       <footer>
         <div class="footer-content">
-</div>
+          <div class="footer-links">
+            <a href="/">Главная</a>
+            <a href="scripts.html">Скрипты</a>
+            <a href="database.html">База данных</a>
+            <a href="server.html">Сервер</a>
+          </div>
+          <div class="copyright">
+            © 2024 ScriptMaster Pro Dashboard. Все права защищены.
+          </div>
+        </div>
       </footer>
     `;
   }

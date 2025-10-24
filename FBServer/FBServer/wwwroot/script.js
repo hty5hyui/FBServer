@@ -1,58 +1,132 @@
 // Shared JavaScript across all pages
 
+// Конфигурация API
+const API_CONFIG = {
+    baseUrl: 'http://localhost:5253',
+    timeout: 10000,
+    retryAttempts: 3,
+    retryDelay: 1000
+};
+
+// Кэш для хранения данных
+const cache = new Map();
+const CACHE_DURATION = 30000; // 30 секунд
+
+// Функция для debounce
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Функция для retry запросов
+async function fetchWithRetry(url, options = {}, retries = API_CONFIG.retryAttempts) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+            
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response;
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, API_CONFIG.retryDelay * (i + 1)));
+        }
+    }
+}
+
 // Функция для обновления статуса системы
 async function updateSystemStatus() {
+    const cacheKey = 'systemStatus';
+    const cached = cache.get(cacheKey);
+    
+    // Проверяем кэш
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        updateStatusDisplay(cached.data);
+        return;
+    }
+    
     try {
         console.log('Отправка запроса на получение статуса...');
-        const response = await fetch('http://localhost:5253/status');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+        const response = await fetchWithRetry(`${API_CONFIG.baseUrl}/status`);
         const data = await response.json();
+        
         console.log('Получены данные статуса:', data);
         
-        // Обновление значений на странице
-        const scryptCountEl = document.getElementById('scryptCount');
-        const dbConnectionEl = document.getElementById('dbConnection');
-        const cpuLoadEl = document.getElementById('cpuLoad');
-        const ozuLoadEl = document.getElementById('ozuLoad');
-        
-        if (scryptCountEl) scryptCountEl.textContent = data.scryptCount || 0;
-        if (dbConnectionEl) dbConnectionEl.textContent = data.dbConnection || 0;
-        if (cpuLoadEl) cpuLoadEl.textContent = (data.cpuLoad || 0) + '%';
-        if (ozuLoadEl) ozuLoadEl.textContent = (data.ozuLoad || 0) + '%';
-        
-        console.log('Статус обновлен:', {
-            scryptCount: data.scryptCount || 0,
-            dbConnection: data.dbConnection || 0,
-            cpuLoad: data.cpuLoad || 0,
-            ozuLoad: data.ozuLoad || 0
+        // Сохраняем в кэш
+        cache.set(cacheKey, {
+            data,
+            timestamp: Date.now()
         });
         
-        // Добавление анимации обновления
-        const statusCards = document.querySelectorAll('.status-card');
-        statusCards.forEach(card => {
-            card.classList.add('loading');
-            setTimeout(() => card.classList.remove('loading'), 1000);
-        });
+        updateStatusDisplay(data);
         
     } catch (error) {
         console.error('Ошибка при получении статуса:', error);
-        
-        // Показать состояние ошибки
-        const scryptCountEl = document.getElementById('scryptCount');
-        const dbConnectionEl = document.getElementById('dbConnection');
-        const cpuLoadEl = document.getElementById('cpuLoad');
-        const ozuLoadEl = document.getElementById('ozuLoad');
-        
-        if (scryptCountEl) scryptCountEl.textContent = '0';
-        if (dbConnectionEl) dbConnectionEl.textContent = '0';
-        if (cpuLoadEl) cpuLoadEl.textContent = '0%';
-        if (ozuLoadEl) ozuLoadEl.textContent = '0%';
+        showErrorState();
     }
 }
+
+// Функция для обновления отображения статуса
+function updateStatusDisplay(data) {
+    const elements = {
+        scryptCount: document.getElementById('scryptCount'),
+        dbConnection: document.getElementById('dbConnection'),
+        cpuLoad: document.getElementById('cpuLoad'),
+        ozuLoad: document.getElementById('ozuLoad')
+    };
+    
+    // Безопасное обновление элементов
+    Object.entries(elements).forEach(([key, element]) => {
+        if (element) {
+            const value = data[key] || 0;
+            element.textContent = key.includes('Load') ? `${value}%` : value;
+        }
+    });
+    
+    // Добавление анимации обновления
+    const statusCards = document.querySelectorAll('.status-card');
+    statusCards.forEach(card => {
+        card.classList.add('loading');
+        setTimeout(() => card.classList.remove('loading'), 1000);
+    });
+}
+
+// Функция для показа состояния ошибки
+function showErrorState() {
+    const elements = {
+        scryptCount: document.getElementById('scryptCount'),
+        dbConnection: document.getElementById('dbConnection'),
+        cpuLoad: document.getElementById('cpuLoad'),
+        ozuLoad: document.getElementById('ozuLoad')
+    };
+    
+    Object.values(elements).forEach(element => {
+        if (element) {
+            element.textContent = element.id.includes('Load') ? '0%' : '0';
+            element.classList.add('error-state');
+        }
+    });
+}
+
+// Debounced версия обновления статуса
+const debouncedUpdateStatus = debounce(updateSystemStatus, 1000);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
@@ -68,6 +142,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Инициализация обновления статуса с debounce
+    updateSystemStatus();
+    setInterval(debouncedUpdateStatus, 5000);
 });
 
 // Функция для форматирования чисел

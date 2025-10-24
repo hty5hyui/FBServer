@@ -1,8 +1,51 @@
 // Скрипт для страницы управления скриптами
 
+// Конфигурация
+const SCRIPTS_CONFIG = {
+    baseUrl: 'http://localhost:5253',
+    cacheDuration: 30000, // 30 секунд
+    retryAttempts: 3,
+    statusUpdateInterval: 5000
+};
+
+// Состояние приложения
+const scriptsState = {
+    cache: new Map(),
+    isLoading: false,
+    statusUpdateInterval: null
+};
+
+// Функция для получения кэшированных данных
+function getCachedScripts() {
+    const cached = scriptsState.cache.get('scripts');
+    if (cached && Date.now() - cached.timestamp < SCRIPTS_CONFIG.cacheDuration) {
+        return cached.data;
+    }
+    return null;
+}
+
+// Функция для сохранения в кэш
+function setCachedScripts(data) {
+    scriptsState.cache.set('scripts', {
+        data,
+        timestamp: Date.now()
+    });
+}
+
 // Функция для загрузки скриптов
 async function loadScripts() {
+    if (scriptsState.isLoading) return;
+    
     console.log('Загрузка скриптов...');
+    
+    const cachedScripts = getCachedScripts();
+    if (cachedScripts) {
+        console.log('Используем кэшированные скрипты');
+        displayScripts(cachedScripts);
+        return;
+    }
+    
+    scriptsState.isLoading = true;
     
     const loadingIndicator = document.getElementById('loadingIndicator');
     const errorMessage = document.getElementById('errorMessage');
@@ -14,15 +57,14 @@ async function loadScripts() {
     if (scriptsContainer) scriptsContainer.innerHTML = '';
     
     try {
-        const response = await fetch('http://localhost:5253/Script');
+        const response = await fetchWithRetry(`${SCRIPTS_CONFIG.baseUrl}/Script`);
         console.log('Ответ сервера:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
         
         const scripts = await response.json();
         console.log('Получены скрипты:', scripts);
+        
+        // Сохраняем в кэш
+        setCachedScripts(scripts);
         
         // Скрыть индикатор загрузки
         if (loadingIndicator) loadingIndicator.classList.add('hidden');
@@ -32,10 +74,47 @@ async function loadScripts() {
         
     } catch (error) {
         console.error('Ошибка при загрузке скриптов:', error);
-        
-        // Скрыть индикатор загрузки и показать ошибку
-        if (loadingIndicator) loadingIndicator.classList.add('hidden');
-        if (errorMessage) errorMessage.classList.remove('hidden');
+        showScriptsError('Ошибка загрузки скриптов. Попробуйте обновить страницу.');
+    } finally {
+        scriptsState.isLoading = false;
+    }
+}
+
+// Функция для retry запросов
+async function fetchWithRetry(url, options = {}, retries = SCRIPTS_CONFIG.retryAttempts) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response;
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+    }
+}
+
+// Функция для показа ошибки
+function showScriptsError(message) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    if (errorMessage) {
+        errorMessage.querySelector('p').textContent = message;
+        errorMessage.classList.remove('hidden');
     }
 }
 
@@ -318,27 +397,24 @@ async function deleteScript(scriptId) {
     }
 }
 
-// Переменная для хранения интервала автоматического обновления
-let statusUpdateInterval = null;
-
 // Функция для запуска автоматического обновления статуса
 function startAutoStatusUpdate() {
     // Остановить предыдущий интервал если он есть
-    if (statusUpdateInterval) {
-        clearInterval(statusUpdateInterval);
+    if (scriptsState.statusUpdateInterval) {
+        clearInterval(scriptsState.statusUpdateInterval);
     }
     
     // Обновлять статус каждые 5 секунд
-    statusUpdateInterval = setInterval(async () => {
+    scriptsState.statusUpdateInterval = setInterval(async () => {
         console.log('Автоматическое обновление статуса скриптов...');
         
         // Получить все скрипты и обновить их статус
         const scriptCards = document.querySelectorAll('.script-card');
-        for (const card of scriptCards) {
+        const updatePromises = Array.from(scriptCards).map(async (card) => {
             const scriptId = card.getAttribute('data-script-id');
             if (scriptId) {
                 try {
-                    const response = await fetch(`http://localhost:5253/Script/status?id=${scriptId}`);
+                    const response = await fetchWithRetry(`${SCRIPTS_CONFIG.baseUrl}/Script/status?id=${scriptId}`);
                     if (response.ok) {
                         const status = await response.json();
                         updateScriptStatus(scriptId, status);
@@ -347,15 +423,18 @@ function startAutoStatusUpdate() {
                     console.error(`Ошибка обновления статуса скрипта ${scriptId}:`, error);
                 }
             }
-        }
-    }, 5000); // Обновлять каждые 5 секунд
+        });
+        
+        // Ждем завершения всех обновлений
+        await Promise.allSettled(updatePromises);
+    }, SCRIPTS_CONFIG.statusUpdateInterval);
 }
 
 // Функция для остановки автоматического обновления
 function stopAutoStatusUpdate() {
-    if (statusUpdateInterval) {
-        clearInterval(statusUpdateInterval);
-        statusUpdateInterval = null;
+    if (scriptsState.statusUpdateInterval) {
+        clearInterval(scriptsState.statusUpdateInterval);
+        scriptsState.statusUpdateInterval = null;
     }
 }
 
