@@ -279,7 +279,7 @@ function showUserDetailsModal(userData) {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
-        <div class="bg-dark-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div class="bg-dark-800 rounded-lg w-full max-w-6xl max-h-[95vh] overflow-hidden">
             <div class="flex items-center justify-between p-6 border-b border-dark-600">
                 <h3 class="text-2xl font-bold text-white">Подробные данные пользователя</h3>
                 <button id="closeModal" class="text-dark-400 hover:text-white transition-colors">
@@ -287,48 +287,66 @@ function showUserDetailsModal(userData) {
                 </button>
             </div>
             
-            <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="p-6">
+                <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                     <!-- Аватар и основная информация -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-dark-700 rounded-lg p-6">
+                    <div class="xl:col-span-1">
+                        <div class="user-info-card rounded-lg p-6">
                             <div class="text-center mb-6">
-                                <div class="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-dark-600 flex items-center justify-center">
+                                <div class="user-avatar w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-dark-600 flex items-center justify-center">
                                     ${userData.avatarByte ? 
                                         `<img src="data:image/jpeg;base64,${userData.avatarByte}" alt="Аватар" class="w-full h-full object-cover">` :
                                         `<i data-feather="user" class="w-16 h-16 text-dark-400"></i>`
                                     }
                                 </div>
-                                <h4 class="text-xl font-semibold text-white">${userData.fio || 'Не указано'}</h4>
-                                <p class="text-dark-300 text-sm">ID: ${userData.userId}</p>
+                                <h4 class="text-xl font-bold text-white mb-1">${userData.fio || 'Не указано'}</h4>
+                                <p class="text-dark-300">ID: ${userData.userId}</p>
                             </div>
                             
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-3">
-                                    <i data-feather="calendar" class="w-4 h-4 text-blue-400"></i>
-                                    <span class="text-dark-300">Создано:</span>
-                                    <span class="text-white">${userData.dateOfCreation || 'Не указано'}</span>
+                            <div class="space-y-4">
+                                <div class="info-item rounded-lg p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                            <i data-feather="calendar" class="w-5 h-5 text-blue-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-dark-300 text-xs font-medium mb-1">Дата создания</p>
+                                            <p class="text-white text-sm font-semibold">${userData.dateOfCreation || 'Не указано'}</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div class="flex items-center gap-3">
-                                    <i data-feather="tag" class="w-4 h-4 text-green-400"></i>
-                                    <span class="text-dark-300">Категория:</span>
-                                    <span class="text-white">${userData.category || 'Не указано'}</span>
+                                <div class="info-item rounded-lg p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                            <i data-feather="tag" class="w-5 h-5 text-green-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-dark-300 text-xs font-medium mb-1">Категория</p>
+                                            <p class="text-white text-sm font-semibold">${userData.category || 'Не указано'}</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div class="flex items-center gap-3">
-                                    <i data-feather="link" class="w-4 h-4 text-purple-400"></i>
-                                    <span class="text-dark-300">Ссылка:</span>
-                                    <a href="${userData.link}" target="_blank" class="text-blue-400 hover:text-blue-300 underline break-all">
-                                        ${userData.link}
-                                    </a>
+                                <div class="info-item rounded-lg p-4">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mt-1">
+                                            <i data-feather="link" class="w-5 h-5 text-purple-400"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-dark-300 text-xs font-medium mb-1">Ссылка</p>
+                                            <a href="${userData.link}" target="_blank" class="text-blue-400 hover:text-blue-300 underline break-all text-xs leading-relaxed block bg-dark-900/50 p-2 rounded">
+                                                ${userData.link}
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Вкладки с данными -->
-                    <div class="lg:col-span-2">
+                    <div class="xl:col-span-3">
                         <div class="bg-dark-700 rounded-lg">
                             <!-- Навигация по вкладкам -->
                             <div class="flex border-b border-dark-600">

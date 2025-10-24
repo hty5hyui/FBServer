@@ -543,6 +543,36 @@ a:focus {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
+/* User info card styles */
+.user-info-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    transition: all 0.3s ease;
+}
+
+.user-info-card:hover {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.7) 100%);
+    border-color: rgba(100, 116, 139, 0.5);
+    transform: translateY(-2px);
+}
+
+.user-avatar {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    border: 3px solid rgba(59, 130, 246, 0.3);
+}
+
+.info-item {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    transition: all 0.3s ease;
+}
+
+.info-item:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(100, 116, 139, 0.4);
+    transform: translateY(-1px);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .status-card {
@@ -579,5 +609,36 @@ a:focus {
     .modal-content {
         width: 95%;
         padding: 1rem;
+    }
+    
+    /* User info responsive */
+    .user-avatar {
+        width: 6rem;
+        height: 6rem;
+    }
+    
+    .user-avatar i {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .info-item {
+        padding: 0.75rem;
+    }
+    
+    .tab-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 1280px) {
+    .grid-cols-4 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+    
+    .xl\\:col-span-1,
+    .xl\\:col-span-3 {
+        grid-column: span 1;
     }
 }
