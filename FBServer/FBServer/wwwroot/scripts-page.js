@@ -260,9 +260,9 @@ function updateScriptStatus(scriptId, status) {
     const indicator = statusElement.querySelector('.status-indicator');
     const text = statusElement.querySelector('.status-text');
     
-    if (status.started) {
+    if (status.status) {
         indicator.className = 'status-indicator w-2 h-2 rounded-full bg-green-500';
-        text.textContent = `Активен - ${status.link}`;
+        text.textContent = `Активен - ${status.running}`;
         text.className = 'status-text text-green-400';
     } else {
         indicator.className = 'status-indicator w-2 h-2 rounded-full bg-red-500';

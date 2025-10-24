@@ -33,6 +33,10 @@ builder.Services.AddScoped<ScriptRepo>();
 builder.Services.AddScoped<ScriptService>();
 builder.Services.AddScoped<ScriptController>();
 
+builder.Services.AddScoped<BaseRepo>();
+builder.Services.AddScoped<BaseService>();
+builder.Services.AddScoped<BaseController>();
+
 //------------------------------------------------------------------------------
 
 

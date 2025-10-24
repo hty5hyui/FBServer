@@ -5,8 +5,8 @@ namespace FBServer.Entity
 {
     public class ScriptStatus
     {
-        public string? link {  get; set; }
-        public bool started { get; set; } = false;
+        public string? running {  get; set; }
+        public bool status { get; set; } = false;
     }
 
     public class ScriptStartParam
