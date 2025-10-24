@@ -508,6 +508,41 @@ a:focus {
     outline-offset: 2px;
 }
 
+/* Tab styles */
+.tab-btn {
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+    color: white;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.tab-btn.active {
+    color: white;
+    border-bottom-color: #3B82F6;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal styles improvements */
+.modal {
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .status-card {

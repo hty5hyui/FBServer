@@ -24,7 +24,7 @@ namespace FBServer.Service
                 City = user.City,
                 AnotherCity = user.AnotherCity,
                 Address = user.Address,
-                Mobile = user.Mobile.Trim(),
+                Mobile = user.Mobile == null ? null : user.Mobile.Trim(),
                 Email = user.Email,
                 AnotherContactInfo = user.AnotherContactInfo,
                 Whatsapp = user.Whatsapp,
@@ -64,7 +64,7 @@ namespace FBServer.Service
                 DateOfCreation = user.DateOfCreation,
                 PronounsInTheSystem = user.PronounsInTheSystem,
                 CheckLink = user.CheckLink,
-                AvatarByte = Convert.ToBase64String(user.AvatarByte) 
+                AvatarByte = user.AvatarByte == null ? null : Convert.ToBase64String(user.AvatarByte)
             };
 
         }
