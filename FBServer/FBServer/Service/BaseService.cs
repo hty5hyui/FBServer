@@ -15,5 +15,12 @@ namespace FBServer.Service
 
             return userPreviewPageData;
         }
+
+        public async Task<UserDTO> GetUserAsync(int userId)
+        {
+            User user = await repo.GetUserAsync(userId);
+            UserDTO userDTO = UserMapper.ToUserDTO(user);
+            return userDTO;
+        }
     }
 }

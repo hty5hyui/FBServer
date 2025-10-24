@@ -1,4 +1,5 @@
-﻿using FBServer.Entity.db;
+﻿using FBServer.Entity;
+using FBServer.Entity.db;
 using Microsoft.EntityFrameworkCore;
 
 namespace FBServer.Repo
@@ -30,6 +31,16 @@ namespace FBServer.Repo
             int rowCount = await _dbContext.Users.CountAsync();
             int result = (int)Math.Ceiling((double)rowCount/ pageSize);
             return result;
+        }
+
+        public async Task<User> GetUserAsync(int idUser)
+        {
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(n => n.UserId == idUser);
+            if (user == null)
+            {
+                throw new Exception("Отсутствует пользователь с данным id");
+            }
+            return user;
         }
     }
 }

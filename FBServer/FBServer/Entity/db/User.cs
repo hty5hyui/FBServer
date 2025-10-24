@@ -218,7 +218,7 @@
         public string? Pinterest { get; set; }
         public string? Soundcloud { get; set; }
         public string? Ok { get; set; }
-        public byte[]? AvatarByte { get; set; }
+        public string? AvatarByte { get; set; }
     }
 
     public class UserPreview

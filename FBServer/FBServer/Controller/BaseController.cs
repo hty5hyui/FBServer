@@ -21,5 +21,19 @@ namespace FBServer.Controller
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения превью списка: {ex.Message}");
             }
         }
+
+        [HttpGet("data")]
+        public async Task<IActionResult> GetDataUser([FromQuery] int idUser)
+        {
+            try
+            {
+                UserDTO user = await baseService.GetUserAsync(idUser);
+                return new JsonResult(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения данных пользователя: {ex.Message}");
+            }
+        }
     }
 }
