@@ -46,13 +46,37 @@
         </div>
 
         <div class="bg-dark-800/50 backdrop-blur-lg rounded-2xl p-6 border border-dark-700">
-            <p class="text-dark-300 text-center py-8">Страница в разработке</p>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold">Пользователи</h2>
+            </div>
+            
+            <div id="tableContainer">
+                <!-- Таблица будет загружена здесь -->
+            </div>
+            
+            <div id="loadingIndicator" class="text-center py-8 hidden">
+                <div class="inline-flex items-center gap-2 text-dark-300">
+                    <i data-feather="loader" class="w-4 h-4 animate-spin"></i>
+                    Загрузка данных...
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="text-center py-8 hidden">
+                <div class="text-red-400">
+                    <i data-feather="alert-circle" class="w-6 h-6 mx-auto mb-2"></i>
+                    <p>Ошибка загрузки данных</p>
+                </div>
+            </div>
+            
+            <div id="paginationContainer" class="mt-6">
+                <!-- Пагинация будет загружена здесь -->
+            </div>
         </div>
     </main>
 
     <custom-footer></custom-footer>
 
-    <script src="script.js"></script>
+    <script src="database-page.js"></script>
     <script>
         feather.replace();
     </script>

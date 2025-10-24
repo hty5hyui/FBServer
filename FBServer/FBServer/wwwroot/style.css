@@ -305,6 +305,117 @@ body {
     box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
+/* Database table styles */
+.database-table {
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.database-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.database-table th {
+    background: rgba(30, 41, 59, 0.8);
+    color: #cbd5e1;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.database-table td {
+    padding: 1.5rem 1.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.database-table tr:hover td {
+    background: rgba(30, 41, 59, 0.5);
+}
+
+.database-table tr:last-child td {
+    border-bottom: none;
+}
+
+.database-table tbody tr {
+    background: rgba(30, 41, 59, 0.1);
+    border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.database-table tbody tr:nth-child(even) {
+    background: rgba(30, 41, 59, 0.2);
+}
+
+.database-table tbody tr:not(:last-child) {
+    border-bottom: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.database-table a {
+    color: #60a5fa;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.database-table a:hover {
+    color: #93c5fd;
+}
+
+/* Pagination styles */
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: 0.5rem;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.pagination-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background: rgba(30, 41, 59, 1);
+    border-color: rgba(100, 116, 139, 0.5);
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-input {
+    width: 5rem;
+    padding: 0.5rem;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 0.25rem;
+    color: white;
+    text-align: center;
+}
+
+.pagination-input:focus {
+    outline: none;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .status-card {

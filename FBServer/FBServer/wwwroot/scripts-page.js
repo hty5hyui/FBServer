@@ -441,15 +441,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Запустить автоматическое обновление статуса
     startAutoStatusUpdate();
     
-    // Добавить обработчик для кнопки обновления
-    const refreshButton = document.getElementById('refreshScripts');
-    if (refreshButton) {
-        refreshButton.addEventListener('click', function() {
-            console.log('Нажата кнопка обновления');
-            loadScripts();
-        });
-    }
-    
     // Добавить обработчик для кнопки добавления скрипта
     const addButton = document.getElementById('addScript');
     if (addButton) {
