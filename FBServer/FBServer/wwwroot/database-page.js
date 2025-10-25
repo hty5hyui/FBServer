@@ -15,7 +15,9 @@ const appState = {
     cache: new Map(),
     isLoading: false,
     searchQuery: null,
-    isSearchActive: false
+    isSearchActive: false,
+    selectedUsers: new Set(), // Множество ID выделенных пользователей
+    isSelectionMode: false // Режим выделения
 };
 
 // Конфигурация полей для поиска
@@ -441,6 +443,9 @@ function displayDatabaseData(data) {
             <table class="w-full text-sm text-left">
                 <thead>
                     <tr>
+                        <th scope="col" class="w-12">
+                            <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox" style="display: ${appState.isSelectionMode ? 'block' : 'none'};">
+                        </th>
                         <th scope="col" class="w-16">№</th>
                         <th scope="col">ФИО</th>
                         <th scope="col">Ссылка</th>
@@ -453,8 +458,12 @@ function displayDatabaseData(data) {
                 <tbody>
                     ${data.map((item, index) => {
                         const recordNumber = (appState.currentPage - 1) * DB_CONFIG.recordsPerPage + index + 1;
+                        const isSelected = appState.selectedUsers.has(item.userId);
                         return `
-                        <tr>
+                        <tr class="${isSelected ? 'bg-blue-900/20 border-l-4 border-blue-500' : ''}">
+                            <td class="text-center">
+                                <input type="checkbox" class="user-checkbox" data-user-id="${item.userId}" ${isSelected ? 'checked' : ''} style="display: ${appState.isSelectionMode ? 'block' : 'none'};">
+                            </td>
                             <td class="text-center text-dark-400 font-medium">${recordNumber}</td>
                             <td class="font-medium text-white">${item.fio || 'Не указано'}</td>
                             <td>
@@ -502,6 +511,176 @@ function displayDatabaseData(data) {
     
     // Добавить обработчики для кнопок обзора
     addViewButtonHandlers();
+    
+    // Добавить обработчики для чекбоксов выделения
+    addSelectionHandlers();
+    
+    // Обновить UI выделения после создания таблицы
+    updateSelectionUI();
+    
+    // Обновить состояние чекбокса "Выделить все"
+    updateSelectAllCheckbox();
+}
+
+// Функция для добавления обработчиков выделения
+function addSelectionHandlers() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    
+    // Обработчик для "Выделить все"
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            userCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+                const userId = checkbox.getAttribute('data-user-id');
+                if (isChecked) {
+                    appState.selectedUsers.add(userId);
+                } else {
+                    appState.selectedUsers.delete(userId);
+                }
+            });
+            updateSelectionUI();
+        });
+    }
+    
+    // Обработчики для отдельных пользователей
+    userCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const userId = this.getAttribute('data-user-id');
+            if (this.checked) {
+                appState.selectedUsers.add(userId);
+            } else {
+                appState.selectedUsers.delete(userId);
+            }
+            updateSelectAllCheckbox();
+            updateSelectionUI();
+        });
+    });
+}
+
+// Функция для обновления состояния "Выделить все"
+function updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    
+    if (selectAllCheckbox && userCheckboxes.length > 0) {
+        const checkedCount = Array.from(userCheckboxes).filter(cb => cb.checked).length;
+        selectAllCheckbox.checked = checkedCount === userCheckboxes.length;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < userCheckboxes.length;
+    }
+}
+
+// Функция для обновления UI выделения
+function updateSelectionUI() {
+    const selectedCount = document.getElementById('selectedCount');
+    const selectedUsersList = document.getElementById('selectedUsersList');
+    const selectionPanel = document.getElementById('selectionPanel');
+    
+    if (selectedCount) {
+        selectedCount.textContent = appState.selectedUsers.size;
+    }
+    
+    if (appState.selectedUsers.size > 0 && appState.isSelectionMode) {
+        if (selectionPanel) {
+            selectionPanel.classList.remove('hidden');
+        }
+        
+        if (selectedUsersList) {
+            // Получаем данные о выделенных пользователях из текущей страницы
+            const currentPageUsers = Array.from(document.querySelectorAll('.user-checkbox:checked'))
+                .map(cb => {
+                    const row = cb.closest('tr');
+                    const fioCell = row.querySelector('td:nth-child(3)');
+                    return fioCell ? fioCell.textContent.trim() : 'Неизвестно';
+                });
+            
+            if (currentPageUsers.length > 0) {
+                selectedUsersList.innerHTML = `
+                    <div class="font-medium text-blue-300 mb-2">На текущей странице:</div>
+                    <div class="space-y-1">
+                        ${currentPageUsers.map(fio => `<div class="text-sm">• ${fio}</div>`).join('')}
+                    </div>
+                    ${appState.selectedUsers.size > currentPageUsers.length ? 
+                        `<div class="text-xs text-gray-400 mt-2">И еще ${appState.selectedUsers.size - currentPageUsers.length} на других страницах</div>` : ''
+                    }
+                `;
+            } else {
+                selectedUsersList.innerHTML = `
+                    <div class="text-sm text-gray-400">
+                        Выделено ${appState.selectedUsers.size} пользователей на других страницах
+                    </div>
+                `;
+            }
+        }
+    } else {
+        if (selectionPanel) {
+            selectionPanel.classList.add('hidden');
+        }
+    }
+}
+
+// Функция для инициализации выделения
+function initializeSelection() {
+    const toggleSelectionBtn = document.getElementById('toggleSelectionBtn');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    
+    // Переключение режима выделения
+    if (toggleSelectionBtn) {
+        toggleSelectionBtn.addEventListener('click', () => {
+            appState.isSelectionMode = !appState.isSelectionMode;
+            
+            if (appState.isSelectionMode) {
+                toggleSelectionBtn.classList.add('bg-blue-600', 'text-white');
+                toggleSelectionBtn.classList.remove('btn-secondary');
+                toggleSelectionBtn.innerHTML = '<i data-feather="check-square" class="w-4 h-4"></i> Режим выделения';
+            } else {
+                toggleSelectionBtn.classList.remove('bg-blue-600', 'text-white');
+                toggleSelectionBtn.classList.add('btn-secondary');
+                toggleSelectionBtn.innerHTML = '<i data-feather="check-square" class="w-4 h-4"></i> Выделение';
+            }
+            
+            // Показать/скрыть чекбоксы
+            const checkboxes = document.querySelectorAll('.user-checkbox, .select-all-checkbox');
+            checkboxes.forEach(cb => {
+                cb.style.display = appState.isSelectionMode ? 'block' : 'none';
+            });
+            
+            // Показать/скрыть панель выделения
+            const selectionPanel = document.getElementById('selectionPanel');
+            if (selectionPanel) {
+                if (appState.isSelectionMode) {
+                    selectionPanel.classList.remove('hidden');
+                } else {
+                    selectionPanel.classList.add('hidden');
+                }
+            }
+            
+            feather.replace();
+        });
+    }
+    
+    // Убедиться, что панель выделения скрыта по умолчанию
+    const selectionPanel = document.getElementById('selectionPanel');
+    if (selectionPanel) {
+        selectionPanel.classList.add('hidden');
+    }
+    
+    // Очистка выделения
+    if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener('click', () => {
+            appState.selectedUsers.clear();
+            
+            // Снять выделение со всех чекбоксов
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            
+            updateSelectAllCheckbox();
+            updateSelectionUI();
+        });
+    }
 }
 
 // Функция для добавления обработчиков кнопок обзора
@@ -537,17 +716,17 @@ async function loadUserDetails(userId) {
 // Функция для показа модального окна с подробными данными
 function showUserDetailsModal(userData) {
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-[9999] p-4 overflow-y-auto modal-backdrop';
     modal.innerHTML = `
-        <div class="bg-dark-800 rounded-lg w-full max-w-6xl max-h-[95vh] overflow-hidden">
-            <div class="flex items-center justify-between p-6 border-b border-dark-600">
+        <div class="bg-dark-800 rounded-lg w-full max-w-6xl max-h-[85vh] flex flex-col my-4 modal-dialog">
+            <div class="flex items-center justify-between p-6 border-b border-dark-600 flex-shrink-0">
                 <h3 class="text-2xl font-bold text-white">Подробные данные пользователя</h3>
                 <button id="closeModal" class="text-dark-400 hover:text-white transition-colors">
                     <i data-feather="x" class="w-6 h-6"></i>
                 </button>
             </div>
             
-            <div class="p-6">
+            <div class="p-6 overflow-y-auto flex-1">
                 <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                     <!-- Аватар и основная информация -->
                     <div class="xl:col-span-1">
@@ -823,28 +1002,55 @@ function showUserDetailsModal(userData) {
                     </div>
                 </div>
             </div>
+            
+            <!-- Нижняя панель с кнопкой закрытия -->
+            <div class="flex justify-end p-4 border-t border-dark-600 flex-shrink-0">
+                <button id="closeModalBottom" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    Закрыть
+                </button>
+            </div>
         </div>
     `;
+    
+    // Предотвратить прокрутку фона
+    document.body.style.overflow = 'hidden';
     
     document.body.appendChild(modal);
     
     // Заменить иконки
     feather.replace();
     
+    // Фиксированное позиционирование модального окна
+    const modalContent = modal.querySelector('.bg-dark-800');
+    
+    // Устанавливаем фиксированную позицию один раз
+    const viewportHeight = window.innerHeight;
+    const maxAllowedHeight = Math.min(viewportHeight * 0.85, viewportHeight - 32);
+    
+    modalContent.style.maxHeight = `${maxAllowedHeight}px`;
+    modalContent.style.marginTop = 'auto';
+    modalContent.style.marginBottom = 'auto';
+    
     // Добавить обработчики событий
     const closeButton = modal.querySelector('#closeModal');
+    const closeButtonBottom = modal.querySelector('#closeModalBottom');
     const tabButtons = modal.querySelectorAll('.tab-btn');
     const tabContents = modal.querySelectorAll('.tab-content');
     
-    // Закрытие модального окна
-    closeButton.addEventListener('click', () => {
+    // Функция закрытия модального окна
+    const closeModal = () => {
+        document.body.style.overflow = ''; // Восстановить прокрутку
         document.body.removeChild(modal);
-    });
+    };
+    
+    // Закрытие модального окна
+    closeButton.addEventListener('click', closeModal);
+    closeButtonBottom.addEventListener('click', closeModal);
     
     // Закрытие по клику на фон
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-            document.body.removeChild(modal);
+            closeModal();
         }
     });
     
@@ -872,6 +1078,15 @@ function showUserDetailsModal(userData) {
             const targetTab = modal.querySelector(`#tab-${tabId}`);
             if (targetTab) {
                 targetTab.classList.remove('hidden');
+                
+                // Прокручиваем к началу содержимого вкладки
+                const modalBody = modal.querySelector('.p-6.overflow-y-auto');
+                if (modalBody) {
+                    modalBody.scrollTop = 0;
+                }
+                
+                // НЕ пересчитываем позицию модального окна при смене вкладок
+                // чтобы окно оставалось на месте
             }
         });
     });
@@ -948,6 +1163,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализировать поиск
     initializeSearch();
+    
+    // Инициализировать выделение
+    initializeSelection();
     
     // Загрузить данные БД
     console.log('Запуск загрузки данных для страницы:', appState.currentPage);
