@@ -70,6 +70,18 @@ const SEARCH_FIELDS = {
     'ok': 'Одноклассники'
 };
 
+// Функция для создания хэша строки
+function hashString(str) {
+    let hash = 0;
+    if (str.length === 0) return hash.toString();
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(36);
+}
+
 // Функция для получения кэшированных данных
 function getCachedData(key) {
     // Временно отключаем кэш для отладки
@@ -94,7 +106,7 @@ async function loadDatabaseData(page = 1) {
     
     console.log('Загрузка данных БД, страница:', page);
     
-    const searchKey = appState.searchQuery ? `_search_${btoa(appState.searchQuery).replace(/[^a-zA-Z0-9]/g, '')}` : '';
+    const searchKey = appState.searchQuery ? `_search_${hashString(appState.searchQuery)}` : '';
     const cacheKey = `db_page_${page}${searchKey}`;
     const cachedData = getCachedData(cacheKey);
     
@@ -190,6 +202,7 @@ function createSearchField(fieldKey = '', fieldValue = '', condition = 'contains
                 <div class="flex-1">
                     <select class="search-condition-select w-full bg-dark-700 border border-dark-500 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:outline-none">
                         <option value="contains" ${condition === 'contains' ? 'selected' : ''}>Содержит</option>
+                        <option value="starts_with" ${condition === 'starts_with' ? 'selected' : ''}>Начинается на</option>
                         <option value="not_empty" ${condition === 'not_empty' ? 'selected' : ''}>Не пусто</option>
                         <option value="empty" ${condition === 'empty' ? 'selected' : ''}>Пусто</option>
                     </select>
@@ -301,7 +314,16 @@ function performSearch() {
             switch (condition) {
                 case 'contains':
                     if (value) {
-                        sqlCondition = `${fieldName} LIKE '%${value.replace(/'/g, "''")}%'`;
+                        // Экранируем одинарные кавычки и другие специальные символы
+                        const escapedValue = value.replace(/'/g, "''").replace(/[%_]/g, '\\$&');
+                        sqlCondition = `${fieldName} ILIKE '%${escapedValue}%'`;
+                    }
+                    break;
+                case 'starts_with':
+                    if (value) {
+                        // Экранируем одинарные кавычки и другие специальные символы
+                        const escapedValue = value.replace(/'/g, "''").replace(/[%_]/g, '\\$&');
+                        sqlCondition = `${fieldName} ILIKE '${escapedValue}%'`;
                     }
                     break;
                 case 'not_empty':
