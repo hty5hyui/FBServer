@@ -14,12 +14,11 @@ namespace FBServer.Service
 
             if (pageQuery.searchQuery == null)
             {
-                userPreviewPageData.userPreviews = await repo.GetUserPreviewsAsync(pageQuery.page);
-                userPreviewPageData.pageCount = await repo.GetPagePreviewCont();
+                userPreviewPageData = await repo.GetUserPreviewsAsync(pageQuery.page);
             }
             else
             {
-
+                userPreviewPageData = await repo.GetUserPreviewsSearchAsync(pageQuery);
             }
             
 

@@ -13,7 +13,61 @@ const appState = {
     currentPage: 1,
     totalPages: 1,
     cache: new Map(),
-    isLoading: false
+    isLoading: false,
+    searchQuery: null,
+    isSearchActive: false
+};
+
+// Конфигурация полей для поиска
+const SEARCH_FIELDS = {
+    'fio': 'ФИО',
+    'work': 'Работа',
+    'university': 'Университет',
+    'school': 'Школа',
+    'home': 'Домашний адрес',
+    'city': 'Город',
+    'another_city': 'Другой город',
+    'address': 'Адрес',
+    'mobile': 'Мобильный телефон',
+    'email': 'Email',
+    'another_contact_info': 'Дополнительная контактная информация',
+    'whatsapp': 'WhatsApp',
+    'site': 'Сайт',
+    'another_web_socialmedia': 'Другие социальные сети',
+    'male': 'Пол',
+    'language': 'Язык',
+    'opening_hours': 'Часы работы',
+    'pronouns_in_the_system': 'Местоимения в системе',
+    'another_basic_information': 'Другая базовая информация',
+    'category': 'Категория',
+    'page_id': 'ID страницы',
+    'date_of_creation': 'Дата создания',
+    'reklama': 'Реклама',
+    'info': 'Информация',
+    'another': 'Другое',
+    'link': 'Ссылка',
+    'work1': 'Дополнительная работа',
+    'university1': 'Дополнительный университет',
+    'school1': 'Дополнительная школа',
+    'vk': 'VK',
+    'instagram': 'Instagram',
+    'skype': 'Skype',
+    'linkedin': 'LinkedIn',
+    'check_link': 'Проверка ссылки',
+    'spotify': 'Spotify',
+    'kakaotalk': 'KakaoTalk',
+    'youtube': 'YouTube',
+    'x': 'X (Twitter)',
+    'tiktok': 'TikTok',
+    'snapchat': 'Snapchat',
+    'wechat': 'WeChat',
+    'threads': 'Threads',
+    'line': 'Line',
+    'twitch': 'Twitch',
+    'askfm': 'Ask.fm',
+    'pinterest': 'Pinterest',
+    'soundcloud': 'SoundCloud',
+    'ok': 'Одноклассники'
 };
 
 // Функция для получения кэшированных данных
@@ -40,7 +94,8 @@ async function loadDatabaseData(page = 1) {
     
     console.log('Загрузка данных БД, страница:', page);
     
-    const cacheKey = `db_page_${page}`;
+    const searchKey = appState.searchQuery ? `_search_${btoa(appState.searchQuery).replace(/[^a-zA-Z0-9]/g, '')}` : '';
+    const cacheKey = `db_page_${page}${searchKey}`;
     const cachedData = getCachedData(cacheKey);
     
     if (cachedData) {
@@ -73,7 +128,7 @@ async function loadDatabaseData(page = 1) {
             },
             body: JSON.stringify({
                 page: page,
-                searchQuery: null
+                searchQuery: appState.searchQuery
             })
         });
         console.log('Ответ сервера:', response.status);
@@ -114,6 +169,179 @@ async function loadDatabaseData(page = 1) {
     } finally {
         appState.isLoading = false;
     }
+}
+
+// Функция для создания поля поиска
+function createSearchField(fieldKey = '', fieldValue = '', condition = 'contains') {
+    const fieldId = `search_field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    return `
+        <div class="search-field bg-dark-600/50 rounded-lg p-3 mb-3 border border-dark-500" data-field-id="${fieldId}">
+            <div class="flex items-center gap-3">
+                <div class="flex-1">
+                    <select class="search-field-select w-full bg-dark-700 border border-dark-500 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:outline-none">
+                        <option value="">Выберите поле</option>
+                        ${Object.entries(SEARCH_FIELDS).map(([key, label]) => 
+                            `<option value="${key}" ${key === fieldKey ? 'selected' : ''}>${label}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                
+                <div class="flex-1">
+                    <select class="search-condition-select w-full bg-dark-700 border border-dark-500 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:outline-none">
+                        <option value="contains" ${condition === 'contains' ? 'selected' : ''}>Содержит</option>
+                        <option value="not_empty" ${condition === 'not_empty' ? 'selected' : ''}>Не пусто</option>
+                        <option value="empty" ${condition === 'empty' ? 'selected' : ''}>Пусто</option>
+                    </select>
+                </div>
+                
+                <div class="flex-1">
+                    <input type="text" class="search-value-input w-full bg-dark-700 border border-dark-500 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:outline-none" 
+                           placeholder="Введите значение" value="${fieldValue}" ${condition === 'not_empty' || condition === 'empty' ? 'disabled' : ''}>
+                </div>
+                
+                <button class="remove-search-field-btn bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Функция для инициализации поиска
+function initializeSearch() {
+    const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+    const searchForm = document.getElementById('searchForm');
+    const addSearchFieldBtn = document.getElementById('addSearchFieldBtn');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const closeSearchBtn = document.getElementById('closeSearchBtn');
+    const searchFieldsContainer = document.getElementById('searchFieldsContainer');
+    
+    // Переключение видимости формы поиска
+    toggleSearchBtn.addEventListener('click', () => {
+        searchForm.classList.toggle('hidden');
+        if (!searchForm.classList.contains('hidden')) {
+            // Если форма открывается и нет полей, добавить одно поле
+            if (searchFieldsContainer.children.length === 0) {
+                addSearchField();
+            }
+        }
+    });
+    
+    // Закрытие формы поиска
+    closeSearchBtn.addEventListener('click', () => {
+        searchForm.classList.add('hidden');
+    });
+    
+    // Добавление поля поиска
+    addSearchFieldBtn.addEventListener('click', addSearchField);
+    
+    // Поиск
+    searchBtn.addEventListener('click', performSearch);
+    
+    // Очистка поиска
+    clearSearchBtn.addEventListener('click', clearSearch);
+}
+
+// Функция для добавления поля поиска
+function addSearchField() {
+    const searchFieldsContainer = document.getElementById('searchFieldsContainer');
+    const fieldHtml = createSearchField();
+    searchFieldsContainer.insertAdjacentHTML('beforeend', fieldHtml);
+    
+    // Заменить иконки
+    feather.replace();
+    
+    // Добавить обработчики для нового поля
+    const newField = searchFieldsContainer.lastElementChild;
+    addSearchFieldHandlers(newField);
+}
+
+// Функция для добавления обработчиков к полю поиска
+function addSearchFieldHandlers(fieldElement) {
+    const removeBtn = fieldElement.querySelector('.remove-search-field-btn');
+    const conditionSelect = fieldElement.querySelector('.search-condition-select');
+    const valueInput = fieldElement.querySelector('.search-value-input');
+    
+    // Удаление поля
+    removeBtn.addEventListener('click', () => {
+        fieldElement.remove();
+    });
+    
+    // Обработка изменения условия
+    conditionSelect.addEventListener('change', () => {
+        const condition = conditionSelect.value;
+        if (condition === 'not_empty' || condition === 'empty') {
+            valueInput.disabled = true;
+            valueInput.value = '';
+        } else {
+            valueInput.disabled = false;
+        }
+    });
+}
+
+// Функция для выполнения поиска
+function performSearch() {
+    const searchFields = document.querySelectorAll('.search-field');
+    const conditions = [];
+    
+    searchFields.forEach(field => {
+        const fieldSelect = field.querySelector('.search-field-select');
+        const conditionSelect = field.querySelector('.search-condition-select');
+        const valueInput = field.querySelector('.search-value-input');
+        
+        const fieldName = fieldSelect.value;
+        const condition = conditionSelect.value;
+        const value = valueInput.value.trim();
+        
+        if (fieldName && condition) {
+            let sqlCondition = '';
+            
+            switch (condition) {
+                case 'contains':
+                    if (value) {
+                        sqlCondition = `${fieldName} LIKE '%${value.replace(/'/g, "''")}%'`;
+                    }
+                    break;
+                case 'not_empty':
+                    sqlCondition = `${fieldName} IS NOT NULL AND ${fieldName} != ''`;
+                    break;
+                case 'empty':
+                    sqlCondition = `(${fieldName} IS NULL OR ${fieldName} = '')`;
+                    break;
+            }
+            
+            if (sqlCondition) {
+                conditions.push(sqlCondition);
+            }
+        }
+    });
+    
+    if (conditions.length > 0) {
+        appState.searchQuery = conditions.join(' AND ');
+        appState.isSearchActive = true;
+        appState.currentPage = 1; // Сброс на первую страницу при поиске
+        
+        console.log('Выполняется поиск:', appState.searchQuery);
+        loadDatabaseData(1);
+    } else {
+        alert('Пожалуйста, добавьте хотя бы одно условие поиска');
+    }
+}
+
+// Функция для очистки поиска
+function clearSearch() {
+    appState.searchQuery = null;
+    appState.isSearchActive = false;
+    appState.currentPage = 1;
+    
+    // Очистить форму
+    const searchFieldsContainer = document.getElementById('searchFieldsContainer');
+    searchFieldsContainer.innerHTML = '';
+    
+    console.log('Поиск очищен');
+    loadDatabaseData(1);
 }
 
 // Функция для retry запросов
@@ -695,6 +923,9 @@ function updatePagination() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Страница базы данных загружена');
     console.log('Состояние приложения:', appState);
+    
+    // Инициализировать поиск
+    initializeSearch();
     
     // Загрузить данные БД
     console.log('Запуск загрузки данных для страницы:', appState.currentPage);

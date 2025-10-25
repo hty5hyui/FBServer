@@ -9,9 +9,10 @@ namespace FBServer.Repo
 
         int pageSize = 50;
 
-        public async Task<List<UserPreview>> GetUserPreviewsAsync(int page)
+        public async Task<UserPreviewPageData> GetUserPreviewsAsync(int page)
         {
-            return await _dbContext.Users.OrderBy(a => a.UserId)
+            UserPreviewPageData data = new UserPreviewPageData();
+            data.userPreviews = await _dbContext.Users.OrderBy(a => a.UserId)
                                            .Skip((page - 1) * pageSize)
                                            .Take(pageSize)
                                            .Select(c => new UserPreview
@@ -24,13 +25,34 @@ namespace FBServer.Repo
                                                Subscribers = c.Subscribers
                                            })
                                            .ToListAsync();
+            int rowCount = await _dbContext.Users.CountAsync();
+            data.pageCount = (int)Math.Ceiling((double)rowCount / pageSize);
+
+            return data;
         }
 
-        public async Task<int> GetPagePreviewCont()
+        public async Task<UserPreviewPageData> GetUserPreviewsSearchAsync(PageSearchEntity pageQuery)
         {
-            int rowCount = await _dbContext.Users.CountAsync();
-            int result = (int)Math.Ceiling((double)rowCount/ pageSize);
-            return result;
+            UserPreviewPageData data = new UserPreviewPageData();
+            data.userPreviews = await _dbContext.Users
+                                   .FromSqlRaw($"SELECT * FROM users WHERE {pageQuery.searchQuery}")
+                                   .OrderBy(a => a.UserId)
+                                   .Skip((pageQuery.page - 1) * pageSize)
+                                   .Take(pageSize)
+                                   .Select(c => new UserPreview
+                                   {
+                                       UserId = c.UserId,
+                                       Email = c.Email,
+                                       Fio = c.Fio,
+                                       Link = c.Link,
+                                       Mobile = c.Mobile,
+                                       Subscribers = c.Subscribers
+                                   }).ToListAsync();
+
+            int rowCount = await _dbContext.Users.FromSqlRaw($"SELECT * FROM users WHERE {pageQuery.searchQuery}").CountAsync();
+            data.pageCount = (int)Math.Ceiling((double)rowCount / pageSize);
+
+            return data;
         }
 
         public async Task<User> GetUserAsync(int idUser)
