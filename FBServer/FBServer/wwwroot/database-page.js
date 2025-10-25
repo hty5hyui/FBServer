@@ -103,6 +103,176 @@ function setCachedData(key, data) {
     });
 }
 
+// Функции для работы с выделенными пользователями в localStorage
+function saveSelectedUsers() {
+    // Собираем данные о выделенных пользователях с именами
+    const selectedUsersData = Array.from(appState.selectedUsers).map(userId => {
+        // Пытаемся найти имя в текущей таблице
+        const checkbox = document.querySelector(`[data-user-id="${userId}"]`);
+        let name = 'Неизвестно';
+        
+        if (checkbox) {
+            const tableRow = checkbox.closest('tr');
+            const fioCell = tableRow.querySelector('td:nth-child(3)');
+            name = fioCell ? fioCell.textContent.trim() : 'Неизвестно';
+        } else {
+            // Если не найдено в таблице, пытаемся найти в кэше
+            name = findUserNameInCache(userId);
+        }
+        
+        return {
+            id: userId,
+            name: name
+        };
+    });
+    
+    // Проверяем, есть ли хотя бы одно имя, отличное от "Неизвестно"
+    const hasValidNames = selectedUsersData.some(user => user.name !== 'Неизвестно');
+    
+    if (hasValidNames) {
+        localStorage.setItem('selectedUsers', JSON.stringify(selectedUsersData));
+    } else {
+        // Но все равно попробуем обновить существующие данные
+        updateUserNamesInStorage();
+    }
+}
+
+function loadSelectedUsers() {
+    try {
+        const saved = localStorage.getItem('selectedUsers');
+        if (saved) {
+            const selectedData = JSON.parse(saved);
+            
+            // Проверяем, новая ли это структура (с именами) или старая (только ID)
+            if (Array.isArray(selectedData) && selectedData.length > 0) {
+                if (typeof selectedData[0] === 'object' && selectedData[0].id) {
+                    // Новая структура с именами
+                    const selectedIds = selectedData.map(user => user.id);
+                    appState.selectedUsers = new Set(selectedIds);
+                } else {
+                    // Старая структура (только ID)
+                    appState.selectedUsers = new Set(selectedData);
+                }
+            } else {
+                appState.selectedUsers = new Set();
+            }
+        }
+    } catch (error) {
+        // Если ошибка при чтении, очищаем localStorage
+        localStorage.removeItem('selectedUsers');
+        appState.selectedUsers = new Set();
+    }
+}
+
+function clearSelectedUsers() {
+    appState.selectedUsers.clear();
+    localStorage.removeItem('selectedUsers');
+}
+
+// Функция для обновления только имен в существующих данных
+function updateUserNamesInStorage() {
+    try {
+        const saved = localStorage.getItem('selectedUsers');
+        if (saved) {
+            const selectedData = JSON.parse(saved);
+            
+            // Обновляем имена только для тех, у кого имя "Неизвестно"
+            let updated = false;
+            const updatedData = selectedData.map(user => {
+                if (user.name === 'Неизвестно') {
+                    const newName = findUserNameInCache(user.id);
+                    if (newName !== 'Неизвестно') {
+                        updated = true;
+                        console.log(`Обновлено имя для ${user.id}: "${newName}"`);
+                        return { ...user, name: newName };
+                    }
+                }
+                return user;
+            });
+            
+            if (updated) {
+                localStorage.setItem('selectedUsers', JSON.stringify(updatedData));
+                console.log('Обновлены имена в localStorage:', updatedData);
+            }
+        }
+    } catch (error) {
+        console.log('Ошибка при обновлении имен:', error);
+    }
+}
+
+// Функция для поиска имени пользователя в кэше
+function findUserNameInCache(userId) {
+    // Поиск в кэше текущей страницы
+    const cacheKey = `db_page_${appState.currentPage}`;
+    const cachedData = appState.cache.get(cacheKey);
+    
+    if (cachedData && cachedData.userPreviews) {
+        const userData = cachedData.userPreviews.find(user => user.userId == userId);
+        if (userData) {
+            return userData.fio || 'Неизвестно';
+        }
+    }
+    
+    // Поиск во всех страницах кэша
+    for (const [key, value] of appState.cache.entries()) {
+        if (key.startsWith('db_page_') && value.userPreviews) {
+            const userData = value.userPreviews.find(user => user.userId == userId);
+            if (userData) {
+                return userData.fio || 'Неизвестно';
+            }
+        }
+    }
+    
+    return 'Неизвестно';
+}
+
+// Функция для обновления состояния чекбоксов на основе сохраненных выделений
+function updateCheckboxesFromSelection() {
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    
+    // Временная отладка
+    console.log('Обновление чекбоксов:', {
+        totalCheckboxes: userCheckboxes.length,
+        selectedUsers: Array.from(appState.selectedUsers),
+        selectedCount: appState.selectedUsers.size
+    });
+    
+    // Обновить состояние отдельных чекбоксов
+    userCheckboxes.forEach(checkbox => {
+        const userId = checkbox.getAttribute('data-user-id');
+        const isSelected = appState.selectedUsers.has(userId);
+        checkbox.checked = isSelected;
+        
+        // Обновить стиль строки
+        const row = checkbox.closest('tr');
+        if (row) {
+            if (isSelected) {
+                row.classList.add('bg-blue-900/20', 'border-l-4', 'border-blue-500');
+            } else {
+                row.classList.remove('bg-blue-900/20', 'border-l-4', 'border-blue-500');
+            }
+        }
+    });
+    
+    // Обновить состояние "Выделить все"
+    if (selectAllCheckbox && userCheckboxes.length > 0) {
+        const checkedCount = userCheckboxes.length;
+        const selectedCount = Array.from(userCheckboxes).filter(cb => cb.checked).length;
+        
+        if (selectedCount === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (selectedCount === checkedCount) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+}
+
 // Функция для загрузки данных БД
 async function loadDatabaseData(page = 1) {
     if (appState.isLoading) return;
@@ -117,6 +287,7 @@ async function loadDatabaseData(page = 1) {
         appState.totalPages = cachedData.pageCount || 1;
         displayDatabaseData(cachedData.userPreviews || []);
         updatePagination();
+        updateCheckboxesFromSelection(); // Обновить чекбоксы после загрузки из кэша
         return;
     }
     
@@ -162,6 +333,9 @@ async function loadDatabaseData(page = 1) {
         
         // Обновить пагинацию после загрузки данных
         updatePagination();
+        
+        // Обновить чекбоксы после загрузки новых данных
+        updateCheckboxesFromSelection();
         
     } catch (error) {
         showErrorMessage(`Ошибка загрузки данных: ${error.message}. Проверьте подключение к серверу.`);
@@ -501,6 +675,14 @@ function displayDatabaseData(data) {
     
     // Обновить состояние чекбокса "Выделить все"
     updateSelectAllCheckbox();
+    
+    // Принудительно обновить состояние чекбоксов на основе сохраненных данных
+    updateCheckboxesFromSelection();
+    
+    // Обновить сохраненные имена для выделенных пользователей
+    if (appState.selectedUsers.size > 0) {
+        updateUserNamesInStorage(); // Обновляем только имена, не перезаписывая данные
+    }
 }
 
 // Функция для добавления обработчиков выделения
@@ -522,6 +704,11 @@ function addSelectionHandlers() {
                 }
             });
             updateSelectionUI();
+            
+            // Принудительно сохраняем имена при выделении
+            setTimeout(() => {
+                saveSelectedUsers();
+            }, 100); // Небольшая задержка для обновления DOM
         });
     }
     
@@ -536,6 +723,11 @@ function addSelectionHandlers() {
             }
             updateSelectAllCheckbox();
             updateSelectionUI();
+            
+            // Принудительно сохраняем имена при выделении
+            setTimeout(() => {
+                saveSelectedUsers();
+            }, 100); // Небольшая задержка для обновления DOM
         });
     });
 }
@@ -662,7 +854,7 @@ function initializeSelection() {
     // Очистка выделения
     if (clearSelectionBtn) {
         clearSelectionBtn.addEventListener('click', () => {
-            appState.selectedUsers.clear();
+            clearSelectedUsers(); // Используем функцию очистки с localStorage
             
             // Снять выделение со всех чекбоксов
             const checkboxes = document.querySelectorAll('.user-checkbox');
@@ -694,43 +886,53 @@ function showProcessModal() {
         return;
     }
     
+    // Принудительно обновить имена в localStorage перед отображением
+    console.log('Обновляем имена перед показом модального окна');
+    updateUserNamesInStorage();
+    
     // Создаем HTML для выделенных пользователей
     const selectedUsersHtml = selectedIds.map(userId => {
         let fio = 'Неизвестно';
+        let source = 'не найдено';
         
-        // Способ 1: Попробуем найти пользователя в текущей таблице
-        const checkbox = document.querySelector(`[data-user-id="${userId}"]`);
+        // Сначала пытаемся найти имя в сохраненных данных
+        const savedData = localStorage.getItem('selectedUsers');
+        console.log('Проверяем сохраненные данные для userId:', userId);
+        console.log('Сохраненные данные:', savedData);
         
-        if (checkbox) {
-            const tableRow = checkbox.closest('tr');
-            // ФИО находится в 3-й ячейке (после чекбокса и номера)
-            const fioCell = tableRow.querySelector('td:nth-child(3)');
-            fio = fioCell ? fioCell.textContent.trim() : 'Неизвестно';
-        } else {
-            // Способ 2: Попробуем найти в кэше текущей страницы
-            const cacheKey = `db_page_${appState.currentPage}`;
-            const cachedData = appState.cache.get(cacheKey);
-            
-            if (cachedData && cachedData.userPreviews) {
-                const userData = cachedData.userPreviews.find(user => user.userId == userId);
-                if (userData) {
-                    fio = userData.fio || 'Неизвестно';
+        if (savedData) {
+            try {
+                const selectedData = JSON.parse(savedData);
+                console.log('Распарсенные данные:', selectedData);
+                const userData = selectedData.find(user => user.id === userId);
+                console.log('Найденные данные пользователя:', userData);
+                
+                if (userData && userData.name) {
+                    fio = userData.name;
+                    source = 'localStorage';
                 }
-            }
-            
-            // Способ 3: Если не найден, поищем во всех страницах кэша
-            if (fio === 'Неизвестно') {
-                for (const [key, value] of appState.cache.entries()) {
-                    if (key.startsWith('db_page_') && value.userPreviews) {
-                        const userData = value.userPreviews.find(user => user.userId == userId);
-                        if (userData) {
-                            fio = userData.fio || 'Неизвестно';
-                            break;
-                        }
-                    }
-                }
+            } catch (error) {
+                console.log('Ошибка при чтении сохраненных данных:', error);
             }
         }
+        
+        // Если не найдено в сохраненных данных, ищем в текущей таблице
+        if (fio === 'Неизвестно') {
+            const checkbox = document.querySelector(`[data-user-id="${userId}"]`);
+            
+            if (checkbox) {
+                const tableRow = checkbox.closest('tr');
+                const fioCell = tableRow.querySelector('td:nth-child(3)');
+                fio = fioCell ? fioCell.textContent.trim() : 'Неизвестно';
+                source = 'текущая таблица';
+            } else {
+                // Ищем в кэше
+                fio = findUserNameInCache(userId);
+                source = 'кэш';
+            }
+        }
+        
+        console.log(`Имя для ${userId}: "${fio}" (источник: ${source})`);
         
         return `<tr class="bg-dark-600 hover:bg-dark-500 transition-colors">
             <td class="px-3 py-2 text-white">${fio}</td>
@@ -1390,6 +1592,9 @@ function updatePagination() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // Загрузить сохраненные выделенные пользователи
+    loadSelectedUsers();
     
     // Инициализировать поиск
     initializeSearch();

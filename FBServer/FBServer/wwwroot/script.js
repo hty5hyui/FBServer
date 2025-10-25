@@ -53,25 +53,9 @@ async function fetchWithRetry(url, options = {}, retries = API_CONFIG.retryAttem
 
 // Функция для обновления статуса системы
 async function updateSystemStatus() {
-    const cacheKey = 'systemStatus';
-    const cached = cache.get(cacheKey);
-    
-    // Проверяем кэш
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        updateStatusDisplay(cached.data);
-        return;
-    }
-    
     try {
         const response = await fetchWithRetry(`${API_CONFIG.baseUrl}/status`);
         const data = await response.json();
-        
-        
-        // Сохраняем в кэш
-        cache.set(cacheKey, {
-            data,
-            timestamp: Date.now()
-        });
         
         updateStatusDisplay(data);
         
@@ -101,7 +85,7 @@ function updateStatusDisplay(data) {
     const statusCards = document.querySelectorAll('.status-card');
     statusCards.forEach(card => {
         card.classList.add('loading');
-        setTimeout(() => card.classList.remove('loading'), 1000);
+        setTimeout(() => card.classList.remove('loading'), 500);
     });
 }
 
@@ -122,12 +106,11 @@ function showErrorState() {
     });
 }
 
-// Debounced версия обновления статуса
-const debouncedUpdateStatus = debounce(updateSystemStatus, 1000);
+// Debounced версия обновления статуса (не используется)
+// const debouncedUpdateStatus = debounce(updateSystemStatus, 1000);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    
     // Добавить обработчики для карточек навигации
     const navCards = document.querySelectorAll('.card');
     navCards.forEach(card => {
@@ -139,9 +122,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Инициализация обновления статуса с debounce
-    updateSystemStatus();
-    setInterval(debouncedUpdateStatus, 5000);
+    // Обновление статуса только на главной странице
+    const statusElements = document.querySelectorAll('#scryptCount, #scryptActive, #scryptInactive, #scryptError');
+    if (statusElements.length > 0) {
+        // Инициализация обновления статуса только если есть элементы статуса
+        updateSystemStatus();
+        setInterval(updateSystemStatus, 5000);
+    }
 });
 
 // Функция для форматирования чисел

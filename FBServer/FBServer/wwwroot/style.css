@@ -142,11 +142,22 @@ body {
 /* Loading animation */
 @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes gentlePulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.9; 
+        transform: scale(1.02);
+    }
 }
 
 .loading {
-    animation: pulse 2s infinite;
+    animation: gentlePulse 1.5s ease-in-out;
 }
 
 /* Script card styles */
@@ -497,7 +508,7 @@ body {
 
 .error-state {
     color: #ef4444 !important;
-    animation: pulse 1s infinite;
+    animation: pulse 2s infinite;
 }
 
 /* Focus styles for accessibility */
