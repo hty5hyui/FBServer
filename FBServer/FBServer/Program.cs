@@ -37,6 +37,8 @@ builder.Services.AddScoped<BaseRepo>();
 builder.Services.AddScoped<BaseService>();
 builder.Services.AddScoped<BaseController>();
 
+builder.Services.AddScoped<OperationService>();
+builder.Services.AddScoped<OperationController>();
 //------------------------------------------------------------------------------
 
 

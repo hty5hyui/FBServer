@@ -81,6 +81,10 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button id="processSelectionBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                <i data-feather="play" class="w-4 h-4"></i>
+                                Обработка
+                            </button>
                             <button id="clearSelectionBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                                 <i data-feather="x" class="w-4 h-4"></i>
                                 Сбросить выделение
@@ -147,6 +151,67 @@
     </main>
 
     <custom-footer></custom-footer>
+
+    <!-- Модальное окно обработки -->
+    <div id="processModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4 hidden">
+        <div class="bg-dark-800 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-dark-600">
+                <h3 class="text-xl font-bold text-white">Обработка выделенных пользователей</h3>
+                <button id="closeProcessModal" class="text-dark-400 hover:text-white transition-colors">
+                    <i data-feather="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Левая часть - форма обработки -->
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-4">Настройки обработки</h4>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-dark-300 mb-2">Тип обработки:</label>
+                                    <select id="processType" class="w-full bg-dark-700 border border-dark-500 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                        <option value="">Выберите тип обработки</option>
+                                        <option value="friends_analyse">Поиск общих друзей</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="flex items-center gap-4 pt-4">
+                                    <button id="startProcessBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <i data-feather="play" class="w-4 h-4"></i>
+                                        Запустить обработку
+                                    </button>
+                                    <button id="cancelProcessBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors">
+                                        <i data-feather="x" class="w-4 h-4"></i>
+                                        Отмена
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Правая часть - таблица пользователей -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-white mb-4">Выделенные пользователи</h4>
+                        <div class="bg-dark-700 rounded-lg p-4 h-96 overflow-y-auto">
+                            <table class="w-full text-sm">
+                                <thead class="sticky top-0 bg-dark-700">
+                                    <tr class="border-b border-dark-600">
+                                        <th class="text-left px-3 py-3 text-dark-300 font-medium">ФИО</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="selectedUsersList">
+                                    <!-- Список будет заполнен динамически -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="database-page.js"></script>
     <script>

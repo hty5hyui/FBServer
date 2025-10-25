@@ -17,7 +17,8 @@ const appState = {
     searchQuery: null,
     isSearchActive: false,
     selectedUsers: new Set(), // Множество ID выделенных пользователей
-    isSelectionMode: false // Режим выделения
+    isSelectionMode: false, // Режим выделения
+    isProcessing: false // Флаг обработки для предотвращения множественных запросов
 };
 
 // Конфигурация полей для поиска
@@ -666,6 +667,18 @@ function initializeSelection() {
         selectionPanel.classList.add('hidden');
     }
     
+    // Обработка выделенных пользователей
+    const processSelectionBtn = document.getElementById('processSelectionBtn');
+    if (processSelectionBtn) {
+        processSelectionBtn.addEventListener('click', () => {
+            if (appState.selectedUsers.size === 0) {
+                alert('Выберите пользователей для обработки');
+                return;
+            }
+            showProcessModal();
+        });
+    }
+    
     // Очистка выделения
     if (clearSelectionBtn) {
         clearSelectionBtn.addEventListener('click', () => {
@@ -681,6 +694,282 @@ function initializeSelection() {
             updateSelectionUI();
         });
     }
+}
+
+// Функция для показа модального окна обработки
+function showProcessModal() {
+    const modal = document.getElementById('processModal');
+    const selectedUsersList = document.getElementById('selectedUsersList');
+    
+    if (!modal || !selectedUsersList) return;
+    
+    // Заполнить список выделенных пользователей
+    const selectedIds = Array.from(appState.selectedUsers);
+    console.log('Выделенные ID:', selectedIds);
+    
+    // Отладочная информация о структуре таблицы
+    const allUserRows = document.querySelectorAll('.user-checkbox');
+    console.log('Всего пользователей в таблице:', allUserRows.length);
+    
+    // Попробуем найти все строки таблицы
+    const allTableRows = document.querySelectorAll('tbody tr');
+    console.log('Всего строк в tbody:', allTableRows.length);
+    
+    // Проверим первую строку для понимания структуры
+    if (allTableRows.length > 0) {
+        const firstRow = allTableRows[0];
+        const cells = firstRow.querySelectorAll('td');
+        console.log('Структура первой строки:', cells.length, 'ячеек');
+        cells.forEach((cell, index) => {
+            console.log(`Первая строка, ячейка ${index}:`, cell.textContent.trim());
+        });
+    }
+    
+    const selectedUsersHtml = selectedIds.map(userId => {
+        let fio = 'Неизвестно';
+        
+        // Способ 1: Попробуем найти пользователя в текущей таблице
+        const checkbox = document.querySelector(`[data-user-id="${userId}"]`);
+        if (checkbox) {
+            const tableRow = checkbox.closest('tr');
+            const allCells = tableRow.querySelectorAll('td');
+            console.log('Структура строки для userId', userId, ':', allCells.length, 'ячеек');
+            allCells.forEach((cell, index) => {
+                console.log(`Ячейка ${index}:`, cell.textContent.trim());
+            });
+            
+            // ФИО находится в 3-й ячейке (после чекбокса и номера)
+            const fioCell = tableRow.querySelector('td:nth-child(3)');
+            fio = fioCell ? fioCell.textContent.trim() : 'Неизвестно';
+            console.log('Найден пользователь (способ 1):', { userId, fio, fioCell: fioCell ? fioCell.textContent : 'null' });
+        } else {
+            console.log('Пользователь не найден в таблице (способ 1):', userId);
+            
+            // Способ 2: Попробуем найти в кэше текущей страницы
+            const cacheKey = `db_page_${appState.currentPage}`;
+            const cachedData = appState.cache.get(cacheKey);
+            if (cachedData && cachedData.userPreviews) {
+                const userData = cachedData.userPreviews.find(user => user.userId == userId);
+                if (userData) {
+                    fio = userData.fio || 'Неизвестно';
+                    console.log('Найден пользователь в кэше текущей страницы (способ 2):', { userId, fio });
+                }
+            }
+            
+            // Способ 3: Если не найден, поищем во всех страницах кэша
+            if (fio === 'Неизвестно') {
+                for (const [key, value] of appState.cache.entries()) {
+                    if (key.startsWith('db_page_') && value.userPreviews) {
+                        const userData = value.userPreviews.find(user => user.userId == userId);
+                        if (userData) {
+                            fio = userData.fio || 'Неизвестно';
+                            console.log('Найден пользователь в кэше другой страницы (способ 3):', { userId, fio, page: key });
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return `<tr class="bg-dark-600 hover:bg-dark-500 transition-colors">
+            <td class="px-3 py-2 text-white">${fio}</td>
+        </tr>`;
+    }).join('');
+    
+    selectedUsersList.innerHTML = selectedUsersHtml || '<tr><td class="text-center py-8 text-dark-300">Нет выделенных пользователей</td></tr>';
+    
+    // Показать модальное окно
+    modal.classList.remove('hidden');
+    
+    // Заменить иконки
+    feather.replace();
+    
+    // Добавить обработчики
+    addProcessModalHandlers();
+}
+
+// Функция для добавления обработчиков модального окна обработки
+function addProcessModalHandlers() {
+    const modal = document.getElementById('processModal');
+    const closeBtn = document.getElementById('closeProcessModal');
+    const cancelBtn = document.getElementById('cancelProcessBtn');
+    const startBtn = document.getElementById('startProcessBtn');
+    const processType = document.getElementById('processType');
+    
+    // Закрытие модального окна
+    const closeModal = () => {
+        modal.classList.add('hidden');
+    };
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeModal);
+    }
+    
+    // Закрытие по клику на фон
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Запуск обработки
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            const selectedType = processType.value;
+            if (!selectedType) {
+                alert('Выберите тип обработки');
+                return;
+            }
+            
+            startProcess(selectedType);
+        });
+    }
+}
+
+// Функция для запуска обработки
+async function startProcess(processType) {
+    const startBtn = document.getElementById('startProcessBtn');
+    const selectedIds = Array.from(appState.selectedUsers);
+    
+    if (selectedIds.length === 0) {
+        showNotification('Нет выделенных пользователей для обработки', 'error');
+        return;
+    }
+    
+    // Проверить, не выполняется ли уже обработка
+    if (appState.isProcessing) {
+        showNotification('Обработка уже выполняется, пожалуйста, подождите', 'warning');
+        return;
+    }
+    
+    // Установить флаг обработки
+    appState.isProcessing = true;
+    
+    // Показать состояние загрузки
+    startBtn.disabled = true;
+    startBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Обработка...';
+    feather.replace();
+    
+    try {
+        let response;
+        
+        switch (processType) {
+            case 'friends_analyse':
+                response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Operation/frendsAnalyse`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(selectedIds)
+                });
+                break;
+            default:
+                throw new Error('Неизвестный тип обработки');
+        }
+        
+        if (response.ok) {
+            showNotification('Запрос на обработку принят успешно!', 'success');
+            // Закрыть модальное окно
+            document.getElementById('processModal').classList.add('hidden');
+        } else {
+            const errorText = await response.text();
+            showNotification(`Ошибка: ${errorText}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Ошибка при обработке:', error);
+        showNotification(`Ошибка: ${error.message}`, 'error');
+    } finally {
+        // Сбросить флаг обработки
+        appState.isProcessing = false;
+        
+        // Восстановить кнопку
+        startBtn.disabled = false;
+        startBtn.innerHTML = '<i data-feather="play" class="w-4 h-4"></i> Запустить обработку';
+        feather.replace();
+    }
+}
+
+// Функция для показа стилизованных уведомлений
+function showNotification(message, type = 'info') {
+    // Удалить существующие уведомления
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    // Создать новое уведомление
+    const notification = document.createElement('div');
+    notification.className = `notification fixed top-4 right-4 z-[10000] p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 ease-in-out`;
+    
+    // Определить стили в зависимости от типа
+    let bgColor, textColor, icon, iconColor;
+    switch (type) {
+        case 'success':
+            bgColor = 'bg-green-900/90';
+            textColor = 'text-green-100';
+            icon = 'check-circle';
+            iconColor = 'text-green-400';
+            break;
+        case 'error':
+            bgColor = 'bg-red-900/90';
+            textColor = 'text-red-100';
+            icon = 'x-circle';
+            iconColor = 'text-red-400';
+            break;
+        case 'warning':
+            bgColor = 'bg-yellow-900/90';
+            textColor = 'text-yellow-100';
+            icon = 'alert-triangle';
+            iconColor = 'text-yellow-400';
+            break;
+        default:
+            bgColor = 'bg-blue-900/90';
+            textColor = 'text-blue-100';
+            icon = 'info';
+            iconColor = 'text-blue-400';
+    }
+    
+    notification.classList.add(bgColor, textColor);
+    
+    notification.innerHTML = `
+        <div class="flex items-start gap-3">
+            <div class="flex-shrink-0">
+                <i data-feather="${icon}" class="w-5 h-5 ${iconColor}"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+            <button class="flex-shrink-0 ml-2 text-current opacity-70 hover:opacity-100 transition-opacity" onclick="this.parentElement.parentElement.remove()">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+    `;
+    
+    // Добавить в DOM
+    document.body.appendChild(notification);
+    
+    // Заменить иконки
+    feather.replace();
+    
+    // Анимация появления
+    requestAnimationFrame(() => {
+        notification.style.transform = 'translateX(0)';
+        notification.style.opacity = '1';
+    });
+    
+    // Автоматическое скрытие через 5 секунд
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 300);
+    }, 5000);
 }
 
 // Функция для добавления обработчиков кнопок обзора
