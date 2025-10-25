@@ -107,14 +107,12 @@ function setCachedData(key, data) {
 async function loadDatabaseData(page = 1) {
     if (appState.isLoading) return;
     
-    console.log('Загрузка данных БД, страница:', page);
     
     const searchKey = appState.searchQuery ? `_search_${hashString(appState.searchQuery)}` : '';
     const cacheKey = `db_page_${page}${searchKey}`;
     const cachedData = getCachedData(cacheKey);
     
     if (cachedData) {
-        console.log('Используем кэшированные данные');
         appState.currentPage = page;
         appState.totalPages = cachedData.pageCount || 1;
         displayDatabaseData(cachedData.userPreviews || []);
@@ -135,7 +133,6 @@ async function loadDatabaseData(page = 1) {
     if (tableContainer) tableContainer.innerHTML = '';
     
     try {
-        console.log('Загружаем данные...');
         const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/all`, {
             method: 'POST',
             headers: {
@@ -146,10 +143,8 @@ async function loadDatabaseData(page = 1) {
                 searchQuery: appState.searchQuery
             })
         });
-        console.log('Ответ сервера:', response.status);
         
         const responseData = await response.json();
-        console.log('Получены данные БД:', responseData);
         
         // Обновить информацию о пагинации
         appState.totalPages = responseData.pageCount || 1;
@@ -158,11 +153,6 @@ async function loadDatabaseData(page = 1) {
         // Сохраняем в кэш
         setCachedData(cacheKey, responseData);
         
-        console.log('Обновлена информация о пагинации:', { 
-            currentPage: appState.currentPage, 
-            totalPages: appState.totalPages, 
-            userCount: userData.length 
-        });
         
         // Скрыть индикатор загрузки
         if (loadingIndicator) loadingIndicator.classList.add('hidden');
@@ -174,12 +164,6 @@ async function loadDatabaseData(page = 1) {
         updatePagination();
         
     } catch (error) {
-        console.error('Ошибка при загрузке данных БД:', error);
-        console.error('Детали ошибки:', {
-            message: error.message,
-            stack: error.stack,
-            url: `${DB_CONFIG.baseUrl}/Base/all`
-        });
         showErrorMessage(`Ошибка загрузки данных: ${error.message}. Проверьте подключение к серверу.`);
     } finally {
         appState.isLoading = false;
@@ -348,7 +332,6 @@ function performSearch() {
         appState.isSearchActive = true;
         appState.currentPage = 1; // Сброс на первую страницу при поиске
         
-        console.log('Выполняется поиск:', appState.searchQuery);
         loadDatabaseData(1);
     } else {
         alert('Пожалуйста, добавьте хотя бы одно условие поиска');
@@ -365,7 +348,6 @@ function clearSearch() {
     const searchFieldsContainer = document.getElementById('searchFieldsContainer');
     searchFieldsContainer.innerHTML = '';
     
-    console.log('Поиск очищен');
     loadDatabaseData(1);
 }
 
@@ -376,7 +358,6 @@ async function fetchWithRetry(url, options = {}, retries = DB_CONFIG.retryAttemp
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000);
             
-            console.log(`Попытка ${i + 1}/${retries}: запрос к ${url}`);
             
             const response = await fetch(url, {
                 ...options,
@@ -391,7 +372,6 @@ async function fetchWithRetry(url, options = {}, retries = DB_CONFIG.retryAttemp
             
             return response;
         } catch (error) {
-            console.error(`Попытка ${i + 1} неудачна:`, error.message);
             
             if (i === retries - 1) {
                 // Если это последняя попытка, выбрасываем ошибку с более подробной информацией
@@ -575,7 +555,7 @@ function updateSelectAllCheckbox() {
 // Функция для обновления UI выделения
 function updateSelectionUI() {
     const selectedCount = document.getElementById('selectedCount');
-    const selectedUsersList = document.getElementById('selectedUsersList');
+    const selectedUsersTooltipList = document.getElementById('selectedUsersTooltipList');
     const selectionPanel = document.getElementById('selectionPanel');
     
     if (selectedCount) {
@@ -587,7 +567,7 @@ function updateSelectionUI() {
             selectionPanel.classList.remove('hidden');
         }
         
-        if (selectedUsersList) {
+        if (selectedUsersTooltipList) {
             // Получаем данные о выделенных пользователях из текущей страницы
             const currentPageUsers = Array.from(document.querySelectorAll('.user-checkbox:checked'))
                 .map(cb => {
@@ -597,7 +577,7 @@ function updateSelectionUI() {
                 });
             
             if (currentPageUsers.length > 0) {
-                selectedUsersList.innerHTML = `
+                selectedUsersTooltipList.innerHTML = `
                     <div class="font-medium text-blue-300 mb-2">На текущей странице:</div>
                     <div class="space-y-1">
                         ${currentPageUsers.map(fio => `<div class="text-sm">• ${fio}</div>`).join('')}
@@ -607,7 +587,7 @@ function updateSelectionUI() {
                     }
                 `;
             } else {
-                selectedUsersList.innerHTML = `
+                selectedUsersTooltipList.innerHTML = `
                     <div class="text-sm text-gray-400">
                         Выделено ${appState.selectedUsers.size} пользователей на других страницах
                     </div>
@@ -701,58 +681,40 @@ function showProcessModal() {
     const modal = document.getElementById('processModal');
     const selectedUsersList = document.getElementById('selectedUsersList');
     
-    if (!modal || !selectedUsersList) return;
+    if (!modal || !selectedUsersList) {
+        return;
+    }
     
     // Заполнить список выделенных пользователей
     const selectedIds = Array.from(appState.selectedUsers);
-    console.log('Выделенные ID:', selectedIds);
     
-    // Отладочная информация о структуре таблицы
-    const allUserRows = document.querySelectorAll('.user-checkbox');
-    console.log('Всего пользователей в таблице:', allUserRows.length);
-    
-    // Попробуем найти все строки таблицы
-    const allTableRows = document.querySelectorAll('tbody tr');
-    console.log('Всего строк в tbody:', allTableRows.length);
-    
-    // Проверим первую строку для понимания структуры
-    if (allTableRows.length > 0) {
-        const firstRow = allTableRows[0];
-        const cells = firstRow.querySelectorAll('td');
-        console.log('Структура первой строки:', cells.length, 'ячеек');
-        cells.forEach((cell, index) => {
-            console.log(`Первая строка, ячейка ${index}:`, cell.textContent.trim());
-        });
+    if (selectedIds.length === 0) {
+        selectedUsersList.innerHTML = '<tr><td class="text-center py-8 text-dark-300">Нет выделенных пользователей</td></tr>';
+        modal.classList.remove('hidden');
+        return;
     }
     
+    // Создаем HTML для выделенных пользователей
     const selectedUsersHtml = selectedIds.map(userId => {
         let fio = 'Неизвестно';
         
         // Способ 1: Попробуем найти пользователя в текущей таблице
         const checkbox = document.querySelector(`[data-user-id="${userId}"]`);
+        
         if (checkbox) {
             const tableRow = checkbox.closest('tr');
-            const allCells = tableRow.querySelectorAll('td');
-            console.log('Структура строки для userId', userId, ':', allCells.length, 'ячеек');
-            allCells.forEach((cell, index) => {
-                console.log(`Ячейка ${index}:`, cell.textContent.trim());
-            });
-            
             // ФИО находится в 3-й ячейке (после чекбокса и номера)
             const fioCell = tableRow.querySelector('td:nth-child(3)');
             fio = fioCell ? fioCell.textContent.trim() : 'Неизвестно';
-            console.log('Найден пользователь (способ 1):', { userId, fio, fioCell: fioCell ? fioCell.textContent : 'null' });
         } else {
-            console.log('Пользователь не найден в таблице (способ 1):', userId);
-            
             // Способ 2: Попробуем найти в кэше текущей страницы
             const cacheKey = `db_page_${appState.currentPage}`;
             const cachedData = appState.cache.get(cacheKey);
+            
             if (cachedData && cachedData.userPreviews) {
                 const userData = cachedData.userPreviews.find(user => user.userId == userId);
                 if (userData) {
                     fio = userData.fio || 'Неизвестно';
-                    console.log('Найден пользователь в кэше текущей страницы (способ 2):', { userId, fio });
                 }
             }
             
@@ -763,7 +725,6 @@ function showProcessModal() {
                         const userData = value.userPreviews.find(user => user.userId == userId);
                         if (userData) {
                             fio = userData.fio || 'Неизвестно';
-                            console.log('Найден пользователь в кэше другой страницы (способ 3):', { userId, fio, page: key });
                             break;
                         }
                     }
@@ -881,7 +842,6 @@ async function startProcess(processType) {
         }
         
     } catch (error) {
-        console.error('Ошибка при обработке:', error);
         showNotification(`Ошибка: ${error.message}`, 'error');
     } finally {
         // Сбросить флаг обработки
@@ -979,7 +939,6 @@ function addViewButtonHandlers() {
     viewButtons.forEach(button => {
         button.addEventListener('click', function() {
             const userId = this.getAttribute('data-user-id');
-            console.log('Обзор пользователя:', userId);
             loadUserDetails(userId);
         });
     });
@@ -988,16 +947,13 @@ function addViewButtonHandlers() {
 // Функция для загрузки подробных данных пользователя
 async function loadUserDetails(userId) {
     try {
-        console.log('Загрузка подробных данных пользователя:', userId);
         
         const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/data?idUser=${userId}`, {});
         const userData = await response.json();
         
-        console.log('Получены подробные данные:', userData);
         showUserDetailsModal(userData);
         
     } catch (error) {
-        console.error('Ошибка при загрузке подробных данных:', error);
         showErrorMessage(`Ошибка загрузки данных пользователя: ${error.message}`);
     }
 }
@@ -1385,14 +1341,9 @@ function showUserDetailsModal(userData) {
 function updatePagination() {
     const paginationContainer = document.getElementById('paginationContainer');
     if (!paginationContainer) {
-        console.error('Элемент paginationContainer не найден');
         return;
     }
     
-    console.log('Обновление пагинации:', { 
-        currentPage: appState.currentPage, 
-        totalPages: appState.totalPages 
-    });
     
     paginationContainer.innerHTML = `
         <div class="pagination-container">
@@ -1421,10 +1372,6 @@ function updatePagination() {
     
     if (prevButton) {
         prevButton.addEventListener('click', function() {
-            console.log('Нажата кнопка "Предыдущая"', { 
-                currentPage: appState.currentPage, 
-                totalPages: appState.totalPages 
-            });
             if (appState.currentPage > 1) {
                 loadDatabaseData(appState.currentPage - 1);
             }
@@ -1433,10 +1380,6 @@ function updatePagination() {
     
     if (nextButton) {
         nextButton.addEventListener('click', function() {
-            console.log('Нажата кнопка "Следующая"', { 
-                currentPage: appState.currentPage, 
-                totalPages: appState.totalPages 
-            });
             if (appState.currentPage < appState.totalPages) {
                 loadDatabaseData(appState.currentPage + 1);
             }
@@ -1447,8 +1390,6 @@ function updatePagination() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Страница базы данных загружена');
-    console.log('Состояние приложения:', appState);
     
     // Инициализировать поиск
     initializeSearch();
@@ -1457,6 +1398,5 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSelection();
     
     // Загрузить данные БД
-    console.log('Запуск загрузки данных для страницы:', appState.currentPage);
     loadDatabaseData(appState.currentPage);
 });

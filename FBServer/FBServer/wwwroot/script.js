@@ -63,11 +63,9 @@ async function updateSystemStatus() {
     }
     
     try {
-        console.log('Отправка запроса на получение статуса...');
         const response = await fetchWithRetry(`${API_CONFIG.baseUrl}/status`);
         const data = await response.json();
         
-        console.log('Получены данные статуса:', data);
         
         // Сохраняем в кэш
         cache.set(cacheKey, {
@@ -78,7 +76,6 @@ async function updateSystemStatus() {
         updateStatusDisplay(data);
         
     } catch (error) {
-        console.error('Ошибка при получении статуса:', error);
         showErrorState();
     }
 }
@@ -130,7 +127,6 @@ const debouncedUpdateStatus = debounce(updateSystemStatus, 1000);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('ScriptMaster Pro Dashboard loaded');
     
     // Добавить обработчики для карточек навигации
     const navCards = document.querySelectorAll('.card');

@@ -36,11 +36,9 @@ function setCachedScripts(data) {
 async function loadScripts() {
     if (scriptsState.isLoading) return;
     
-    console.log('Загрузка скриптов...');
     
     const cachedScripts = getCachedScripts();
     if (cachedScripts) {
-        console.log('Используем кэшированные скрипты');
         displayScripts(cachedScripts);
         return;
     }
@@ -58,10 +56,8 @@ async function loadScripts() {
     
     try {
         const response = await fetchWithRetry(`${SCRIPTS_CONFIG.baseUrl}/Script`);
-        console.log('Ответ сервера:', response.status);
         
         const scripts = await response.json();
-        console.log('Получены скрипты:', scripts);
         
         // Сохраняем в кэш
         setCachedScripts(scripts);
@@ -73,7 +69,6 @@ async function loadScripts() {
         displayScripts(scripts);
         
     } catch (error) {
-        console.error('Ошибка при загрузке скриптов:', error);
         showScriptsError('Ошибка загрузки скриптов. Попробуйте обновить страницу.');
     } finally {
         scriptsState.isLoading = false;
@@ -198,7 +193,6 @@ function addScriptButtonHandlers() {
     startButtons.forEach(button => {
         button.addEventListener('click', function() {
             const scriptId = this.getAttribute('data-script-id');
-            console.log('Запуск скрипта:', scriptId);
             showStartForm(scriptId);
         });
     });
@@ -206,7 +200,6 @@ function addScriptButtonHandlers() {
     stopButtons.forEach(button => {
         button.addEventListener('click', function() {
             const scriptId = this.getAttribute('data-script-id');
-            console.log('Остановка скрипта:', scriptId);
             stopScript(scriptId);
         });
     });
@@ -214,7 +207,6 @@ function addScriptButtonHandlers() {
     statusButtons.forEach(button => {
         button.addEventListener('click', function() {
             const scriptId = this.getAttribute('data-script-id');
-            console.log('Проверка статуса скрипта:', scriptId);
             checkScriptStatus(scriptId);
         });
     });
@@ -222,7 +214,6 @@ function addScriptButtonHandlers() {
     deleteButtons.forEach(button => {
         button.addEventListener('click', function() {
             const scriptId = this.getAttribute('data-script-id');
-            console.log('Удаление скрипта:', scriptId);
             showDeleteConfirmation(scriptId);
         });
     });
@@ -271,7 +262,6 @@ function showStartForm(scriptId) {
 // Функция для запуска скрипта
 async function startScript(scriptId, url, depth) {
     try {
-        console.log('Запуск скрипта:', scriptId, url, depth);
         const response = await fetch(`http://localhost:5253/Script/start?id=${scriptId}`, {
             method: 'POST',
             headers: {
@@ -284,50 +274,39 @@ async function startScript(scriptId, url, depth) {
         });
         
         if (response.ok) {
-            console.log('Скрипт успешно запущен');
             checkScriptStatus(scriptId); // Обновить статус
         } else {
-            console.error('Ошибка запуска скрипта:', response.status);
         }
     } catch (error) {
-        console.error('Ошибка при запуске скрипта:', error);
     }
 }
 
 // Функция для остановки скрипта
 async function stopScript(scriptId) {
     try {
-        console.log('Остановка скрипта:', scriptId);
         const response = await fetch(`http://localhost:5253/Script/stop?id=${scriptId}`, {
             method: 'GET'
         });
         
         if (response.ok) {
-            console.log('Скрипт успешно остановлен');
             checkScriptStatus(scriptId); // Обновить статус
         } else {
-            console.error('Ошибка остановки скрипта:', response.status);
         }
     } catch (error) {
-        console.error('Ошибка при остановке скрипта:', error);
     }
 }
 
 // Функция для проверки статуса скрипта
 async function checkScriptStatus(scriptId) {
     try {
-        console.log('Проверка статуса скрипта:', scriptId);
         const response = await fetch(`http://localhost:5253/Script/status?id=${scriptId}`);
         
         if (response.ok) {
             const status = await response.json();
-            console.log('Статус скрипта:', status);
             updateScriptStatus(scriptId, status);
         } else {
-            console.error('Ошибка получения статуса:', response.status);
         }
     } catch (error) {
-        console.error('Ошибка при проверке статуса:', error);
     }
 }
 
@@ -381,19 +360,15 @@ function showDeleteConfirmation(scriptId) {
 // Функция для удаления скрипта
 async function deleteScript(scriptId) {
     try {
-        console.log('Удаление скрипта:', scriptId);
         const response = await fetch(`http://localhost:5253/Script?id=${scriptId}`, {
             method: 'DELETE'
         });
         
         if (response.ok) {
-            console.log('Скрипт успешно удален');
             loadScripts(); // Перезагрузить список скриптов
         } else {
-            console.error('Ошибка удаления скрипта:', response.status);
         }
     } catch (error) {
-        console.error('Ошибка при удалении скрипта:', error);
     }
 }
 
@@ -406,7 +381,6 @@ function startAutoStatusUpdate() {
     
     // Обновлять статус каждые 5 секунд
     scriptsState.statusUpdateInterval = setInterval(async () => {
-        console.log('Автоматическое обновление статуса скриптов...');
         
         // Получить все скрипты и обновить их статус
         const scriptCards = document.querySelectorAll('.script-card');
@@ -420,7 +394,6 @@ function startAutoStatusUpdate() {
                         updateScriptStatus(scriptId, status);
                     }
                 } catch (error) {
-                    console.error(`Ошибка обновления статуса скрипта ${scriptId}:`, error);
                 }
             }
         });
@@ -486,7 +459,6 @@ function showAddScriptForm() {
 // Функция для добавления скрипта
 async function addScript(name, ip, port) {
     try {
-        console.log('Добавление скрипта:', name, ip, port);
         const response = await fetch('http://localhost:5253/Script', {
             method: 'POST',
             headers: {
@@ -500,19 +472,15 @@ async function addScript(name, ip, port) {
         });
         
         if (response.ok) {
-            console.log('Скрипт успешно добавлен');
             loadScripts(); // Перезагрузить список скриптов
         } else {
-            console.error('Ошибка добавления скрипта:', response.status);
         }
     } catch (error) {
-        console.error('Ошибка при добавлении скрипта:', error);
     }
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Страница управления скриптами загружена');
     
     // Загрузить скрипты
     loadScripts();
@@ -524,7 +492,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const addButton = document.getElementById('addScript');
     if (addButton) {
         addButton.addEventListener('click', function() {
-            console.log('Нажата кнопка добавления скрипта');
             showAddScriptForm();
         });
     }
