@@ -66,7 +66,16 @@ async function loadDatabaseData(page = 1) {
     
     try {
         console.log('Загружаем данные...');
-        const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/all?page=${page}`);
+        const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/all`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                page: page,
+                searchQuery: null
+            })
+        });
         console.log('Ответ сервера:', response.status);
         
         const responseData = await response.json();
@@ -99,7 +108,7 @@ async function loadDatabaseData(page = 1) {
         console.error('Детали ошибки:', {
             message: error.message,
             stack: error.stack,
-            url: `${DB_CONFIG.baseUrl}/Base/all?page=${page}`
+            url: `${DB_CONFIG.baseUrl}/Base/all`
         });
         showErrorMessage(`Ошибка загрузки данных: ${error.message}. Проверьте подключение к серверу.`);
     } finally {
@@ -108,7 +117,7 @@ async function loadDatabaseData(page = 1) {
 }
 
 // Функция для retry запросов
-async function fetchWithRetry(url, retries = DB_CONFIG.retryAttempts) {
+async function fetchWithRetry(url, options = {}, retries = DB_CONFIG.retryAttempts) {
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
@@ -117,6 +126,7 @@ async function fetchWithRetry(url, retries = DB_CONFIG.retryAttempts) {
             console.log(`Попытка ${i + 1}/${retries}: запрос к ${url}`);
             
             const response = await fetch(url, {
+                ...options,
                 signal: controller.signal
             });
             
@@ -262,7 +272,7 @@ async function loadUserDetails(userId) {
     try {
         console.log('Загрузка подробных данных пользователя:', userId);
         
-        const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/data?idUser=${userId}`);
+        const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/data?idUser=${userId}`, {});
         const userData = await response.json();
         
         console.log('Получены подробные данные:', userData);

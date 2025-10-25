@@ -1,17 +1,27 @@
-﻿using FBServer.Entity.db;
+﻿using FBServer.Entity;
+using FBServer.Entity.db;
 using FBServer.Repo;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace FBServer.Service
 {
     public class BaseService(BaseRepo repo)
     {
-        public async Task<UserPreviewPageData> GetUserPreviewsAsync(int page)
+        public async Task<UserPreviewPageData> GetUserPreviewsAsync(PageSearchEntity pageQuery)
         {
 
             UserPreviewPageData userPreviewPageData = new UserPreviewPageData();
 
-            userPreviewPageData.userPreviews = await repo.GetUserPreviewsAsync(page);
-            userPreviewPageData.pageCount = await repo.GetPagePreviewCont();
+            if (pageQuery.searchQuery == null)
+            {
+                userPreviewPageData.userPreviews = await repo.GetUserPreviewsAsync(pageQuery.page);
+                userPreviewPageData.pageCount = await repo.GetPagePreviewCont();
+            }
+            else
+            {
+
+            }
+            
 
             return userPreviewPageData;
         }

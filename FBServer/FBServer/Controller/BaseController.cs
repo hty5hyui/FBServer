@@ -1,4 +1,5 @@
-﻿using FBServer.Entity.db;
+﻿using FBServer.Entity;
+using FBServer.Entity.db;
 using FBServer.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,12 +9,12 @@ namespace FBServer.Controller
     [Route("[controller]")]
     public class BaseController(BaseService baseService):ControllerBase
     {
-        [HttpGet("all")]
-        public async Task<IActionResult> GetPreviewUsers([FromQuery]int page)
+        [HttpPost("all")]
+        public async Task<IActionResult> GetPreviewUsers([FromBody] PageSearchEntity pageQuery)
         {
             try
             {
-                UserPreviewPageData userPreviews = await baseService.GetUserPreviewsAsync(page);
+                UserPreviewPageData userPreviews = await baseService.GetUserPreviewsAsync(pageQuery);
                 return new JsonResult(userPreviews);
             }
             catch(Exception ex) 
