@@ -1288,7 +1288,203 @@ th:first-child, td:first-child {
     max-height: calc(85vh - 2rem);
 }
 
+/* Status badges for requests page */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-processing {
+    color: #fbbf24;
+    background-color: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.status-completed {
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-error {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Small button styles */
+.btn-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-small:active {
+    transform: translateY(0);
+}
+
+.btn-small:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Requests table specific styles */
+.requests-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.requests-table th {
+    text-align: left;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600;
+    color: var(--dark-300);
+    border-bottom: 1px solid var(--dark-600);
+    background-color: rgba(30, 41, 59, 0.3) !important;
+    vertical-align: middle;
+    text-transform: none !important;
+    font-size: 0.875rem !important;
+}
+
+.requests-table td {
+    text-align: left !important;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid var(--dark-700);
+    vertical-align: middle;
+}
+
+/* Tighter left padding for first column to align visually with header label */
+.requests-table th:first-child,
+.requests-table td:first-child {
+    padding-left: 0.5rem !important;
+}
+
+.requests-table tbody tr {
+    transition: var(--transition);
+}
+
+.requests-table tbody tr:hover {
+    background-color: rgba(30, 41, 59, 0.3);
+}
+
+.requests-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Refresh button specific styling */
+#refreshBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(100, 116, 139, 0.2);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 0.5rem;
+    color: var(--dark-300);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+#refreshBtn:hover {
+    background: rgba(100, 116, 139, 0.3);
+    border-color: rgba(100, 116, 139, 0.5);
+    color: white;
+    transform: translateY(-1px);
+}
+
+#refreshBtn:active {
+    transform: translateY(0);
+}
+
+#refreshBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Records info styling */
+#recordsInfo {
+    font-size: 0.875rem;
+    color: var(--dark-400);
+    font-weight: 500;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--dark-400);
+}
+
+.empty-state i {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive table */
 @media (max-width: 768px) {
+    .requests-table {
+        font-size: 0.875rem;
+    }
+    
+    .requests-table th,
+    .requests-table td {
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    .requests-table th:first-child {
+        width: auto;
+        min-width: 120px;
+    }
+    
+    .requests-table th:nth-child(2) {
+        width: auto;
+        min-width: 100px;
+    }
+    
+    .requests-table th:nth-child(3),
+    .requests-table th:nth-child(4) {
+        width: auto;
+        min-width: 80px;
+    }
+    
+    .btn-small {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.6875rem;
+    }
+    
+    #refreshBtn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    #recordsInfo {
+        font-size: 0.75rem;
+    }
+    
     .fixed.inset-0 {
         align-items: center;
         padding: 0.5rem;

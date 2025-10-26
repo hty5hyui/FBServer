@@ -21,5 +21,19 @@ namespace FBServer.Controller
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения списка запросов: {ex.Message}");
             }
         }
+
+        [HttpGet("result")]
+        public async Task<IActionResult> GetRequestResult([FromQuery] int idRequest)
+        {
+            try
+            {
+                RequestPageData requests = await requestService.GetAllRequestsAsync(page);
+                return new JsonResult(requests);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения списка запросов: {ex.Message}");
+            }
+        }
     }
 }

@@ -103,6 +103,7 @@ class CustomNavbar extends HTMLElement {
           <li><a href="/">Главная</a></li>
           <li><a href="scripts.html">Скрипты</a></li>
           <li><a href="database.html">База данных</a></li>
+          <li><a href="requests.html">Запросы</a></li>
           <li><a href="server.html">Сервер</a></li>
         </ul>
 </nav>
