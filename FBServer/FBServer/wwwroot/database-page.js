@@ -183,7 +183,6 @@ function updateUserNamesInStorage() {
                     const newName = findUserNameInCache(user.id);
                     if (newName !== 'Неизвестно') {
                         updated = true;
-                        console.log(`Обновлено имя для ${user.id}: "${newName}"`);
                         return { ...user, name: newName };
                     }
                 }
@@ -192,12 +191,9 @@ function updateUserNamesInStorage() {
             
             if (updated) {
                 localStorage.setItem('selectedUsers', JSON.stringify(updatedData));
-                console.log('Обновлены имена в localStorage:', updatedData);
             }
         }
-    } catch (error) {
-        console.log('Ошибка при обновлении имен:', error);
-    }
+    } catch (error) {}
 }
 
 // Функция для поиска имени пользователя в кэше
@@ -231,12 +227,6 @@ function updateCheckboxesFromSelection() {
     const userCheckboxes = document.querySelectorAll('.user-checkbox');
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
     
-    // Временная отладка
-    console.log('Обновление чекбоксов:', {
-        totalCheckboxes: userCheckboxes.length,
-        selectedUsers: Array.from(appState.selectedUsers),
-        selectedCount: appState.selectedUsers.size
-    });
     
     // Обновить состояние отдельных чекбоксов
     userCheckboxes.forEach(checkbox => {
@@ -887,7 +877,6 @@ function showProcessModal() {
     }
     
     // Принудительно обновить имена в localStorage перед отображением
-    console.log('Обновляем имена перед показом модального окна');
     updateUserNamesInStorage();
     
     // Создаем HTML для выделенных пользователей
@@ -897,22 +886,18 @@ function showProcessModal() {
         
         // Сначала пытаемся найти имя в сохраненных данных
         const savedData = localStorage.getItem('selectedUsers');
-        console.log('Проверяем сохраненные данные для userId:', userId);
-        console.log('Сохраненные данные:', savedData);
         
         if (savedData) {
             try {
                 const selectedData = JSON.parse(savedData);
-                console.log('Распарсенные данные:', selectedData);
                 const userData = selectedData.find(user => user.id === userId);
-                console.log('Найденные данные пользователя:', userData);
                 
                 if (userData && userData.name) {
                     fio = userData.name;
                     source = 'localStorage';
                 }
             } catch (error) {
-                console.log('Ошибка при чтении сохраненных данных:', error);
+                
             }
         }
         
@@ -932,7 +917,6 @@ function showProcessModal() {
             }
         }
         
-        console.log(`Имя для ${userId}: "${fio}" (источник: ${source})`);
         
         return `<tr class="bg-dark-600 hover:bg-dark-500 transition-colors">
             <td class="px-3 py-2 text-white">${fio}</td>
@@ -958,6 +942,8 @@ function addProcessModalHandlers() {
     const cancelBtn = document.getElementById('cancelProcessBtn');
     const startBtn = document.getElementById('startProcessBtn');
     const processType = document.getElementById('processType');
+    const depthWrapper = document.getElementById('depthFieldWrapper');
+    const depthInput = document.getElementById('processDepth');
     
     // Закрытие модального окна
     const closeModal = () => {
@@ -991,6 +977,30 @@ function addProcessModalHandlers() {
             startProcess(selectedType);
         });
     }
+
+    // Показ/скрытие поля глубины поиска в зависимости от типа обработки
+    const updateDepthVisibility = () => {
+        const show = processType && processType.value === 'friends_analyse';
+        if (depthWrapper) {
+            if (show) {
+                depthWrapper.classList.remove('hidden');
+            } else {
+                depthWrapper.classList.add('hidden');
+            }
+        }
+        if (depthInput && (depthInput.value === '' || Number.isNaN(parseInt(depthInput.value, 10)) || parseInt(depthInput.value, 10) < 1 || parseInt(depthInput.value, 10) > 3)) {
+            const value = parseInt(depthInput.value, 10);
+            if (isNaN(value) || value < 1) {
+                depthInput.value = '1';
+            } else if (value > 3) {
+                depthInput.value = '3';
+            }
+        }
+    };
+    if (processType) {
+        updateDepthVisibility();
+        processType.addEventListener('change', updateDepthVisibility);
+    }
 }
 
 // Функция для запуска обработки
@@ -1022,13 +1032,31 @@ async function startProcess(processType) {
         
         switch (processType) {
             case 'friends_analyse':
-                response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Operation/frendsAnalyse`, {
+                {
+                    const depthEl = document.getElementById('processDepth');
+                    let depth = 1;
+                    if (depthEl) {
+                        const parsed = parseInt(depthEl.value, 10);
+                        if (Number.isFinite(parsed)) {
+                            if (parsed < 1) {
+                                depth = 1;
+                            } else if (parsed > 3) {
+                                depth = 3;
+                            } else {
+                                depth = parsed;
+                            }
+                        } else {
+                            depth = 1;
+                        }
+                    }
+                    response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Operation/frendsAnalyse?depth=${encodeURIComponent(depth)}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(selectedIds)
-                });
+                    });
+                }
                 break;
             default:
                 throw new Error('Неизвестный тип обработки');
@@ -1604,4 +1632,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Загрузить данные БД
     loadDatabaseData(appState.currentPage);
+});
+
+// Сброс локального хранилища при закрытии/обновлении страницы
+window.addEventListener('beforeunload', function() {
+    try {
+        clearSelectedUsers();
+    } catch (e) {
+        try { localStorage.removeItem('selectedUsers'); } catch (_) {}
+    }
+});
+
+// Дополнительный обработчик для мобильных браузеров
+window.addEventListener('pagehide', function() {
+    try {
+        clearSelectedUsers();
+    } catch (e) {
+        try { localStorage.removeItem('selectedUsers'); } catch (_) {}
+    }
 });

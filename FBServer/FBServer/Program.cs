@@ -39,6 +39,9 @@ builder.Services.AddScoped<BaseController>();
 
 builder.Services.AddScoped<OperationService>();
 builder.Services.AddScoped<OperationController>();
+
+builder.Services.AddScoped<RequestService>();
+builder.Services.AddScoped<RequestController>();
 //------------------------------------------------------------------------------
 
 
@@ -91,6 +94,24 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+//-----------------------------Миграция------------------------------------------------------------- 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbFBContext>();
+        await context.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine (ex.Message);
+    }
+}
+//--------------------------------------------------------------------------------------------------
+
+
 
 //-----------------------------использование middleware--------------------------------------------- 
 //Для аутентифакции и авторизации

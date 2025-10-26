@@ -5,6 +5,7 @@ public class AppDbFBContext : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Friendship> Friendships { get; set; }
+    public DbSet<Request> Requests { get; set; }
 
     public AppDbFBContext(DbContextOptions<AppDbFBContext> options) : base(options)
     {

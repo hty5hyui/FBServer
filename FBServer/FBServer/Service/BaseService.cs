@@ -7,6 +7,7 @@ namespace FBServer.Service
 {
     public class BaseService(BaseRepo repo)
     {
+        
         public async Task<UserPreviewPageData> GetUserPreviewsAsync(PageSearchEntity pageQuery)
         {
 
@@ -32,4 +33,5 @@ namespace FBServer.Service
             return userDTO;
         }
     }
+
 }

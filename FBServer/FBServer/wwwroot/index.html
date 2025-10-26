@@ -39,7 +39,7 @@
     <custom-navbar></custom-navbar>
     <main class="container mx-auto px-4 py-8" role="main">
         <!-- Навигационные карточки -->
-        <section aria-labelledby="navigation-heading" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <section aria-labelledby="navigation-heading" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
             <h2 id="navigation-heading" class="sr-only">Навигация по разделам</h2>
             <article class="card hover:scale-105 cursor-pointer transition-all duration-300" role="button" tabindex="0" aria-label="Перейти к управлению скриптами">
                 <div class="card-icon bg-blue-500/20 text-blue-400" aria-hidden="true">
@@ -49,6 +49,16 @@
                 <p class="text-dark-300 mb-4">Создание и управление скриптами</p>
                 <a href="scripts.html" class="btn-primary inline-block" aria-describedby="scripts-desc">Перейти</a>
                 <span id="scripts-desc" class="sr-only">Открыть страницу управления скриптами</span>
+            </article>
+
+            <article class="card hover:scale-105 cursor-pointer transition-all duration-300" role="button" tabindex="0" aria-label="Перейти к запросам на обработку">
+                <div class="card-icon bg-purple-500/20 text-purple-400" aria-hidden="true">
+                    <i data-feather="inbox"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Запросы на обработку</h3>
+                <p class="text-dark-300 mb-4">Список запросов и их статусы</p>
+                <a href="requests.html" class="btn-primary inline-block" aria-describedby="requests-desc">Перейти</a>
+                <span id="requests-desc" class="sr-only">Открыть страницу запросов на обработку</span>
             </article>
 
             <article class="card hover:scale-105 cursor-pointer transition-all duration-300" role="button" tabindex="0" aria-label="Перейти к управлению базой данных">

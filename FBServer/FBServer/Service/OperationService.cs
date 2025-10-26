@@ -1,12 +1,125 @@
-﻿using FBServer.Repo;
+﻿using FBServer.Entity;
+using FBServer.Entity.db;
+using FBServer.Repo;
 
 namespace FBServer.Service
 {
     public class OperationService(BaseRepo repo)
     {
-        internal async Task StartFrendsAnalyseAsync(List<int> idUsers)
+        public async Task<int> CreateRequestAsync(string typeOperation)
         {
-            
+            Request request = new Request
+            {
+                date = DateTime.UtcNow,
+                type = typeOperation,
+                status = (int)RequestStatus.InProgress,
+                result = null
+            };
+            int idRequest = await repo.CreateRequestAsync(request);
+            return idRequest;
+        }
+
+
+        /// <summary>
+        /// Метод для анализа друзей пользователей на заданную глубину. Находит общих друзей между пользователями.
+        /// </summary>
+        /// <param name="idUsers"></param> Список идентификаторов пользователей для анализа.  
+        /// <param name="depth"></param> Глубина анализа друзей.
+        /// <returns></returns>
+        public async Task StartFrendsAnalyseAsync(List<int> idUsers, int depth, int idRequest)
+        {
+
+            try
+            {
+                List<FrendsOperationEntity> users = new List<FrendsOperationEntity>();
+
+                // Инициализация пользователей с их идентификаторами
+                foreach (int idUser in idUsers)
+                {
+                    users.Add(new FrendsOperationEntity
+                    {
+                        userId = idUser,
+                        frendsId = new Dictionary<int, int> { { idUser, 0 } }
+                    });
+                }
+
+                //Получаем полный список друзей для каждого пользователя на заданную глубину
+                for (int i = 0; i < depth; i++)
+                {
+                    foreach (FrendsOperationEntity user in users.ToList())
+                    {
+                        List<int> frendsIds = await repo.GetUserFrendsAsync(user.userId);
+                        foreach (int frendId in frendsIds)
+                        {
+                            if (!user.frendsId.ContainsKey(frendId))
+                            {
+                                user.frendsId.Add(frendId, i + 1);
+                            }
+                        }
+                    }
+
+                }
+                //Инициализация результата анализа друзей
+                List<FrendsOperationResultEntity> resultEntity = new List<FrendsOperationResultEntity>();
+
+                //Сравнение друзей между пользователями и поиск общих друзей
+                foreach (FrendsOperationEntity user in users)
+                {
+                    foreach (FrendsOperationEntity user2 in users)
+                    {
+                        List<FrendsEntity> userFrends = new List<FrendsEntity>();
+
+                        if (user.userId != user2.userId)
+                        {
+                            foreach (int frendsId in user.frendsId.OrderBy(d => d.Value).Where(z => z.Value == 1).Select(k => k.Key))
+                            {
+                                Dictionary<int, int> frendsList = new Dictionary<int, int>();
+
+                                if (user2.frendsId.ContainsKey(frendsId))
+                                {
+                                    if (!frendsList.ContainsKey(frendsId))
+                                    {
+                                        frendsList.Add(frendsId, user2.frendsId[frendsId]);
+                                    }
+                                }
+
+                                if (frendsList.Count > 0)
+                                {
+                                    userFrends.Add(new FrendsEntity
+                                    {
+                                        userId = user2.userId,
+                                        frendsId = frendsList
+                                    });
+                                }
+                            }
+                        }
+                        //Если с каким-то пользователем есть пересечение, то добавляем его в список результата
+                        if (userFrends.Count > 0)
+                        {
+                            resultEntity.Add(new FrendsOperationResultEntity
+                            {
+                                userSourceId = user.userId,
+                                frends = userFrends
+                            });
+                        }
+                    }
+                }
+                if (resultEntity.Count == 0)
+                {
+                    await repo.UpdateRequestResultAsync(idRequest, (int)RequestStatus.Completed, null);
+                }
+                else
+                {
+                    string resultString = System.Text.Json.JsonSerializer.Serialize(resultEntity);
+                    await repo.UpdateRequestResultAsync(idRequest, (int)RequestStatus.Completed, resultString);
+                }
+                    
+                
+            }
+            catch (Exception ex)
+            {
+                await repo.UpdateRequestResultAsync(idRequest, (int)RequestStatus.Failed, $"Ошибка выполнения операции: {ex.Message}");
+            }
         }
     }
 }

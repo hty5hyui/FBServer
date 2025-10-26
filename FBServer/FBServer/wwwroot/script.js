@@ -81,12 +81,7 @@ function updateStatusDisplay(data) {
         }
     });
     
-    // Добавление анимации обновления
-    const statusCards = document.querySelectorAll('.status-card');
-    statusCards.forEach(card => {
-        card.classList.add('loading');
-        setTimeout(() => card.classList.remove('loading'), 500);
-    });
+    // Убрана анимация увеличения иконок при обновлении статуса
 }
 
 // Функция для показа состояния ошибки

@@ -6,13 +6,11 @@ namespace FBServer.Repo
 {
     public class BaseRepo(AppDbFBContext _dbContext)
     {
-
         int pageSize = 50;
-
-        public async Task<UserPreviewPageData> GetUserPreviewsAsync(int page)
+        internal async Task<UserPreviewPageData> GetUserPreviewsAsync(int page)
         {
             UserPreviewPageData data = new UserPreviewPageData();
-            data.userPreviews = await _dbContext.Users.OrderBy(a => a.UserId)
+            data.userPreviews = await _dbContext.Users.OrderByDescending(a => a.UserId)
                                            .Skip((page - 1) * pageSize)
                                            .Take(pageSize)
                                            .Select(c => new UserPreview
@@ -31,7 +29,7 @@ namespace FBServer.Repo
             return data;
         }
 
-        public async Task<UserPreviewPageData> GetUserPreviewsSearchAsync(PageSearchEntity pageQuery)
+        internal async Task<UserPreviewPageData> GetUserPreviewsSearchAsync(PageSearchEntity pageQuery)
         {
             UserPreviewPageData data = new UserPreviewPageData();
             data.userPreviews = await _dbContext.Users
@@ -55,7 +53,7 @@ namespace FBServer.Repo
             return data;
         }
 
-        public async Task<User> GetUserAsync(int idUser)
+        internal async Task<User> GetUserAsync(int idUser)
         {
             User? user = await _dbContext.Users.FirstOrDefaultAsync(n => n.UserId == idUser);
             if (user == null)
@@ -63,6 +61,64 @@ namespace FBServer.Repo
                 throw new Exception("Отсутствует пользователь с данным id");
             }
             return user;
+        }
+
+        internal async Task<List<int>> GetUserFrendsAsync(int userId)
+        {
+            return await _dbContext.Friendships
+                                   .Where(f => f.User1Id == userId && f.Handshake == 1)
+                                   .Select(f => f.User2Id)
+                                   .Union(_dbContext.Friendships
+                                                    .Where(f => f.User2Id == userId && f.Handshake == 1)
+                                                    .Select(f => f.User1Id))
+                                   .ToListAsync();
+        }
+
+        internal async Task<int> CreateRequestAsync(Request request)
+        {
+            await _dbContext.Requests.AddAsync(request);
+            await _dbContext.SaveChangesAsync();
+            return request.id;
+        }
+
+        internal async Task UpdateRequestResultAsync(int idRequest, int status, string? result)
+        {
+            try
+            {
+                Request request = new Request { id = idRequest };
+                _dbContext.Requests.Attach(request);
+                request.status = status;
+                request.result = result;
+                _dbContext.Requests.Entry(request).Property(r => r.status).IsModified = true;
+                _dbContext.Requests.Entry(request).Property(r => r.result).IsModified = true;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при обновлении запроса: {ex.Message}");
+
+            }
+        }
+
+        internal async Task<RequestPageData> GetAllRequestsAsync(int page)
+        {
+            RequestPageData data = new RequestPageData();
+            data.requests = await _dbContext.Requests.OrderByDescending(a => a.id)
+                                           .Skip((page - 1) * pageSize)
+                                           .Take(pageSize)
+                                           .Select(c => new RequestDTO
+                                           {    
+                                                id = c.id,
+                                                date = c.date,
+                                                type = c.type,
+                                                status = c.status
+                                           })
+                                           .ToListAsync();
+            int rowCount = await _dbContext.Requests.CountAsync();
+            data.pageCount = (int)Math.Ceiling((double)rowCount / pageSize);
+
+            return data;
         }
     }
 }
