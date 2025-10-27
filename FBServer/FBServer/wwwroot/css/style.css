@@ -1495,3 +1495,60 @@ th:first-child, td:first-child {
         margin: 0;
     }
 }
+
+/* Стили для таблицы результатов */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.results-table th {
+    text-align: left;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600;
+    color: var(--dark-300);
+    border-bottom: 1px solid var(--dark-600);
+    background-color: rgba(30, 41, 59, 0.3) !important;
+    vertical-align: middle;
+    text-transform: none !important;
+    font-size: 0.875rem !important;
+}
+
+.results-table td {
+    text-align: left !important;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid var(--dark-700);
+    vertical-align: middle;
+}
+
+.results-table tr:hover {
+    background-color: rgba(30, 41, 59, 0.2);
+}
+
+/* Стили для тегов общих друзей */
+.results-table .inline-block {
+    display: inline-block;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Адаптивность для таблицы результатов */
+@media (max-width: 768px) {
+    .results-table th,
+    .results-table td {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.75rem;
+    }
+    
+    .results-table th:first-child,
+    .results-table th:nth-child(2) {
+        width: auto;
+        min-width: 100px;
+    }
+    
+    .results-table th:nth-child(3) {
+        width: auto;
+        min-width: 150px;
+    }
+}

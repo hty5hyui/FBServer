@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты запроса - Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 min-h-screen text-white">
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+    
+    <custom-navbar></custom-navbar>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold">Результаты поиска общих друзей</h1>
+            <a href="requests.html" class="btn-primary">Назад к запросам</a>
+        </div>
+
+        <div class="bg-dark-800/50 backdrop-blur-lg rounded-2xl p-6 border border-dark-700">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold">Найденные совпадения</h2>
+                <div class="flex items-center gap-3">
+                    <div class="text-sm text-dark-400">
+                        <span id="recordsInfo">Записей: 0</span>
+                    </div>
+                    <button id="refreshBtn" class="btn-secondary">
+                        <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                        Обновить
+                    </button>
+                </div>
+            </div>
+
+            <!-- Таблица результатов -->
+            <div class="overflow-x-auto">
+                <table class="w-full results-table">
+                    <colgroup>
+                        <col style="width: 25%;"> <!-- Исходный пользователь -->
+                        <col style="width: 25%;"> <!-- Пользователь с общими друзьями -->
+                        <col style="width: 50%;"> <!-- Общие друзья -->
+                    </colgroup>
+                    <thead>
+                        <tr class="border-b border-dark-600">
+                            <th class="text-left py-3 px-4 font-medium text-dark-300">Исходный пользователь</th>
+                            <th class="text-left py-3 px-4 font-medium text-dark-300">Пользователь с общими друзьями</th>
+                            <th class="text-left py-3 px-4 font-medium text-dark-300">Общие друзья</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <!-- Данные будут загружены через JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Состояние загрузки -->
+            <div id="loadingState" class="hidden text-center py-8">
+                <div class="inline-flex items-center gap-2 text-dark-400">
+                    <i data-feather="loader" class="w-4 h-4 animate-spin"></i>
+                    Загрузка результатов...
+                </div>
+            </div>
+
+            <!-- Состояние ошибки -->
+            <div id="errorState" class="hidden text-center py-8">
+                <div class="text-red-400 mb-4">
+                    <i data-feather="alert-circle" class="w-8 h-8 mx-auto mb-2"></i>
+                    <p id="errorMessage">Ошибка загрузки данных. Проверьте подключение к серверу.</p>
+                </div>
+                <button id="retryBtn" class="btn-primary">Попробовать снова</button>
+            </div>
+
+            <!-- Состояние отсутствия данных -->
+            <div id="noDataState" class="hidden text-center py-8">
+                <div class="text-dark-400">
+                    <i data-feather="inbox" class="w-8 h-8 mx-auto mb-2"></i>
+                    <p>Результаты не найдены</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <custom-footer></custom-footer>
+
+    <script src="js/shared.js"></script>
+    <script src="js/results-page.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

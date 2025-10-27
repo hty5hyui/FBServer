@@ -250,8 +250,7 @@ const goToPage = (page) => {
 
 // Просмотр результата
 const viewResult = (requestId) => {
-    // TODO: Реализовать просмотр результата
-    alert(`Просмотр результата для запроса ID: ${requestId}`);
+    window.location.href = `results.html?id=${requestId}`;
 };
 
 // Состояния UI для страницы запросов

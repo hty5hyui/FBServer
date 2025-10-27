@@ -128,5 +128,13 @@ namespace FBServer.Repo
                                    .Select(u => u.Fio)
                                    .FirstOrDefaultAsync() ?? "Неизвестный пользователь";
         }
+
+        internal async Task<string?> GetRequestResultAsync(int idRequest)
+        {
+            return await _dbContext.Requests
+                                   .Where(r => r.id == idRequest)
+                                   .Select(r => r.result)
+                                   .FirstOrDefaultAsync();
+        }
     }
 }

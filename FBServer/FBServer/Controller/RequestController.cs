@@ -1,4 +1,5 @@
-﻿using FBServer.Entity.db;
+﻿using FBServer.Entity;
+using FBServer.Entity.db;
 using FBServer.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,7 +28,7 @@ namespace FBServer.Controller
         {
             try
             {
-                RequestPageData requests = await requestService.GetAllRequestsAsync(idRequest);
+                FrendsOperationResultDataEntity requests = await requestService.GetRequestResultAsync(idRequest);
                 return new JsonResult(requests);
             }
             catch (Exception ex)

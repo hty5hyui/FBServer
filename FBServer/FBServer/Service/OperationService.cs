@@ -119,9 +119,7 @@ namespace FBServer.Service
                             });
                         }
                     }
-                }
-
-                
+                }                
 
                 if (resultEntity.Count == 0)
                 {
