@@ -120,5 +120,13 @@ namespace FBServer.Repo
 
             return data;
         }
+
+        internal async Task<string> GetUserNameAsync(int frendId)
+        {
+            return await _dbContext.Users
+                                   .Where(u => u.UserId == frendId)
+                                   .Select(u => u.Fio)
+                                   .FirstOrDefaultAsync() ?? "Неизвестный пользователь";
+        }
     }
 }

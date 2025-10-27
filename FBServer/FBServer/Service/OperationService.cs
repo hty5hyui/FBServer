@@ -61,6 +61,7 @@ namespace FBServer.Service
                 }
                 //Инициализация результата анализа друзей
                 List<FrendsOperationResultEntity> resultEntity = new List<FrendsOperationResultEntity>();
+                Dictionary<int, string> userData = new Dictionary<int, string>();
 
                 //Сравнение друзей между пользователями и поиск общих друзей
                 foreach (FrendsOperationEntity user in users)
@@ -71,10 +72,9 @@ namespace FBServer.Service
 
                         if (user.userId != user2.userId)
                         {
+                            Dictionary<int, int> frendsList = new Dictionary<int, int>();
                             foreach (int frendsId in user.frendsId.OrderBy(d => d.Value).Where(z => z.Value == 1).Select(k => k.Key))
                             {
-                                Dictionary<int, int> frendsList = new Dictionary<int, int>();
-
                                 if (user2.frendsId.ContainsKey(frendsId))
                                 {
                                     if (!frendsList.ContainsKey(frendsId))
@@ -82,14 +82,30 @@ namespace FBServer.Service
                                         frendsList.Add(frendsId, user2.frendsId[frendsId]);
                                     }
                                 }
-
-                                if (frendsList.Count > 0)
+                            }
+                            //Если есть общие друзья, то добавляем их в результат
+                            if (frendsList.Count > 0)
+                            {
+                                //Добавляем пользователя с общими друзьями и самих общих друзей
+                                userFrends.Add(new FrendsEntity
                                 {
-                                    userFrends.Add(new FrendsEntity
+                                    userId = user2.userId,
+                                    frendsId = frendsList
+                                });
+                                //Заполняем информацию о пользователях для результата
+                                if (!userData.ContainsKey(user.userId))
+                                {
+                                    string userName = await repo.GetUserNameAsync(user.userId);
+                                    userData.Add(user.userId, userName);
+                                }
+
+                                foreach (int frendId in frendsList.Keys)
+                                {
+                                    if (!userData.ContainsKey(frendId))
                                     {
-                                        userId = user2.userId,
-                                        frendsId = frendsList
-                                    });
+                                        string userName = await repo.GetUserNameAsync(frendId);
+                                        userData.Add(frendId, userName);
+                                    }
                                 }
                             }
                         }
@@ -104,17 +120,22 @@ namespace FBServer.Service
                         }
                     }
                 }
+
+                
+
                 if (resultEntity.Count == 0)
                 {
                     await repo.UpdateRequestResultAsync(idRequest, (int)RequestStatus.Completed, null);
                 }
                 else
                 {
-                    string resultString = System.Text.Json.JsonSerializer.Serialize(resultEntity);
+                    FrendsOperationResultDataEntity frendsOperationResultDataEntity = new FrendsOperationResultDataEntity();
+                    frendsOperationResultDataEntity.operationResult = resultEntity;
+                    frendsOperationResultDataEntity.userData = userData;
+
+                    string resultString = System.Text.Json.JsonSerializer.Serialize(frendsOperationResultDataEntity);
                     await repo.UpdateRequestResultAsync(idRequest, (int)RequestStatus.Completed, resultString);
                 }
-                    
-                
             }
             catch (Exception ex)
             {

@@ -5,6 +5,14 @@
         public int userId { get; set; }
         public Dictionary<int, int> frendsId { get; set; }
     }
+
+    //Результат операции анализа общих друзей c именами пользователей
+    public class FrendsOperationResultDataEntity
+    {
+        public List<FrendsOperationResultEntity>? operationResult { get; set; }
+        public Dictionary<int, string>? userData { get; set; }
+    }
+
     public class FrendsOperationResultEntity
     {
         //Id изначального пользователя
