@@ -1,5 +1,5 @@
 /* Shared styles across all pages */
-@import url('./fonts.css');
+@import url('./font.css');
 
 :root {
     --primary-color: #3B82F6;
