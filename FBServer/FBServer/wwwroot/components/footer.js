@@ -55,9 +55,6 @@ class CustomFooter extends HTMLElement {
             <a href="database.html">База данных</a>
             <a href="server.html">Сервер</a>
           </div>
-          <div class="copyright">
-            © 2024 ScriptMaster Pro Dashboard. Все права защищены.
-          </div>
         </div>
       </footer>
     `;

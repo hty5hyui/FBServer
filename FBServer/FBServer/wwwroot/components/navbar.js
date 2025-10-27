@@ -3,8 +3,8 @@ class CustomNavbar extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
+        <link rel="stylesheet" href="css/font.css">
+       
         * {
           margin: 0;
           padding: 0;
@@ -95,7 +95,7 @@ class CustomNavbar extends HTMLElement {
         }
       </style>
       <nav>
-        <div class="logo">ScriptMaster Pro</div>
+        <div class="logo">Bogorog</div>
 <button class="mobile-menu-btn">
           <i data-feather="menu"></i>
         </button>

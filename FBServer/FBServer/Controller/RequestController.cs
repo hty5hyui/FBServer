@@ -27,7 +27,7 @@ namespace FBServer.Controller
         {
             try
             {
-                RequestPageData requests = await requestService.GetAllRequestsAsync(page);
+                RequestPageData requests = await requestService.GetAllRequestsAsync(idRequest);
                 return new JsonResult(requests);
             }
             catch (Exception ex)
