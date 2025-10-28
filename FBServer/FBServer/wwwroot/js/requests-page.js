@@ -250,7 +250,7 @@ const goToPage = (page) => {
 
 // Просмотр результата
 const viewResult = (requestId) => {
-    window.location.href = `results.html?id=${requestId}`;
+    window.location.href = `results-frends-page.html?id=${requestId}`;
 };
 
 // Состояния UI для страницы запросов

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Результаты запроса - Dashboard</title>
+    <title>Результаты: Поиск общих друзей</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -31,11 +31,11 @@
             }
         }
     </script>
-</head>
-<body class="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 min-h-screen text-white">
     <script src="components/navbar.js"></script>
     <script src="components/footer.js"></script>
-    
+    <script src="js/shared.js"></script>
+</head>
+<body class="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 min-h-screen text-white">
     <custom-navbar></custom-navbar>
 
     <main class="container mx-auto px-4 py-8">
@@ -58,22 +58,22 @@
                 </div>
             </div>
 
-            <!-- Таблица результатов -->
+            <!-- Интерактивная таблица результатов -->
             <div class="overflow-x-auto">
                 <table class="w-full results-table">
                     <colgroup>
-                        <col style="width: 25%;"> <!-- Исходный пользователь -->
-                        <col style="width: 25%;"> <!-- Пользователь с общими друзьями -->
-                        <col style="width: 50%;"> <!-- Общие друзья -->
+                        <col style="width: 33%;"> <!-- Исходные пользователи -->
+                        <col style="width: 33%;"> <!-- Пользователи с совпадениями -->
+                        <col style="width: 34%;"> <!-- Общие друзья -->
                     </colgroup>
                     <thead>
                         <tr class="border-b border-dark-600">
                             <th class="text-left py-3 px-4 font-medium text-dark-300">Исходный пользователь</th>
-                            <th class="text-left py-3 px-4 font-medium text-dark-300">Пользователь с общими друзьями</th>
+                            <th class="text-left py-3 px-4 font-medium text-dark-300">Пользователь с совпадениями</th>
                             <th class="text-left py-3 px-4 font-medium text-dark-300">Общие друзья</th>
                         </tr>
                     </thead>
-                    <tbody id="resultsTableBody">
+                    <tbody id="interactiveTableBody">
                         <!-- Данные будут загружены через JavaScript -->
                     </tbody>
                 </table>
@@ -108,10 +108,11 @@
 
     <custom-footer></custom-footer>
 
-    <script src="js/shared.js"></script>
-    <script src="js/results-page.js"></script>
+    <script src="js/results-frends-page.js"></script>
     <script>
         feather.replace();
     </script>
 </body>
 </html>
+
+

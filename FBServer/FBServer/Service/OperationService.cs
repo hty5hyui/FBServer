@@ -66,10 +66,9 @@ namespace FBServer.Service
                 //Сравнение друзей между пользователями и поиск общих друзей
                 foreach (FrendsOperationEntity user in users)
                 {
+                    List<FrendsEntity> userFrends = new List<FrendsEntity>();
                     foreach (FrendsOperationEntity user2 in users)
                     {
-                        List<FrendsEntity> userFrends = new List<FrendsEntity>();
-
                         if (user.userId != user2.userId)
                         {
                             Dictionary<int, int> frendsList = new Dictionary<int, int>();
@@ -109,15 +108,15 @@ namespace FBServer.Service
                                 }
                             }
                         }
-                        //Если с каким-то пользователем есть пересечение, то добавляем его в список результата
-                        if (userFrends.Count > 0)
+                    }
+                    //Если с каким-то пользователем есть пересечение, то добавляем его в список результата
+                    if (userFrends.Count > 0)
+                    {
+                        resultEntity.Add(new FrendsOperationResultEntity
                         {
-                            resultEntity.Add(new FrendsOperationResultEntity
-                            {
-                                userSourceId = user.userId,
-                                frends = userFrends
-                            });
-                        }
+                            userSourceId = user.userId,
+                            frends = userFrends
+                        });
                     }
                 }                
 
