@@ -2,7 +2,9 @@
 
 // Конфигурация
 const DB_CONFIG = {
-    baseUrl: 'http://localhost:5253',
+    get baseUrl() {
+        return window.location.origin;
+    },
     recordsPerPage: 50,
     cacheDuration: 60000, // 1 минута
     retryAttempts: 3
@@ -87,11 +89,10 @@ function hashString(str) {
 
 // Функция для получения кэшированных данных
 function getCachedData(key) {
-    // Временно отключаем кэш для отладки
-    // const cached = appState.cache.get(key);
-    // if (cached && Date.now() - cached.timestamp < DB_CONFIG.cacheDuration) {
-    //     return cached.data;
-    // }
+     const cached = appState.cache.get(key);
+     if (cached && Date.now() - cached.timestamp < DB_CONFIG.cacheDuration) {
+        return cached.data;
+    }
     return null;
 }
 

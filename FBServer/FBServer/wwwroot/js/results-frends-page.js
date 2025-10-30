@@ -1,9 +1,10 @@
 // Страница результатов: Поиск общих друзей
-// Копия логики из results-page.js с тем же поведением
 
 // Конфигурация
 const RESULTS_CONFIG = {
-    baseUrl: 'http://localhost:5253',
+    get baseUrl() {
+        return window.location.origin;
+    },
     timeout: 10000,
     retryAttempts: 3,
     retryDelay: 1000

@@ -1,5 +1,3 @@
-// JavaScript specific to the main page (index.html)
-
 // Функция для обновления статуса системы
 async function updateSystemStatus() {
     try {

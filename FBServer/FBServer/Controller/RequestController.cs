@@ -33,7 +33,7 @@ namespace FBServer.Controller
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения списка запросов: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения результата запросов: {ex.Message}");
             }
         }
     }

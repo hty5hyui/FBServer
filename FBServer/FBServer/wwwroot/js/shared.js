@@ -2,7 +2,9 @@
 
 // Конфигурация API
 const API_CONFIG = {
-    baseUrl: 'http://localhost:5253',
+    get baseUrl() {
+        return window.location.origin;
+    },
     timeout: 10000,
     retryAttempts: 3,
     retryDelay: 1000

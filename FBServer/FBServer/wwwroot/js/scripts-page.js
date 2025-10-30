@@ -2,7 +2,9 @@
 
 // Конфигурация
 const SCRIPTS_CONFIG = {
-    baseUrl: 'http://localhost:5253',
+    get baseUrl() {
+        return window.location.origin;
+    },
     cacheDuration: 30000, // 30 секунд
     retryAttempts: 3,
     statusUpdateInterval: 5000
@@ -262,7 +264,7 @@ function showStartForm(scriptId) {
 // Функция для запуска скрипта
 async function startScript(scriptId, url, depth) {
     try {
-        const response = await fetch(`http://localhost:5253/Script/start?id=${scriptId}`, {
+        const response = await fetch(`${SCRIPTS_CONFIG.baseUrl}/Script/start?id=${scriptId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -284,7 +286,7 @@ async function startScript(scriptId, url, depth) {
 // Функция для остановки скрипта
 async function stopScript(scriptId) {
     try {
-        const response = await fetch(`http://localhost:5253/Script/stop?id=${scriptId}`, {
+        const response = await fetch(`${SCRIPTS_CONFIG.baseUrl}/Script/stop?id=${scriptId}`, {
             method: 'GET'
         });
         
@@ -299,7 +301,7 @@ async function stopScript(scriptId) {
 // Функция для проверки статуса скрипта
 async function checkScriptStatus(scriptId) {
     try {
-        const response = await fetch(`http://localhost:5253/Script/status?id=${scriptId}`);
+        const response = await fetch(`${SCRIPTS_CONFIG.baseUrl}/Script/status?id=${scriptId}`);
         
         if (response.ok) {
             const status = await response.json();
@@ -360,7 +362,7 @@ function showDeleteConfirmation(scriptId) {
 // Функция для удаления скрипта
 async function deleteScript(scriptId) {
     try {
-        const response = await fetch(`http://localhost:5253/Script?id=${scriptId}`, {
+        const response = await fetch(`${SCRIPTS_CONFIG.baseUrl}/Script?id=${scriptId}`, {
             method: 'DELETE'
         });
         
@@ -459,7 +461,7 @@ function showAddScriptForm() {
 // Функция для добавления скрипта
 async function addScript(name, ip, port) {
     try {
-        const response = await fetch('http://localhost:5253/Script', {
+        const response = await fetch(`${SCRIPTS_CONFIG.baseUrl}/Script`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

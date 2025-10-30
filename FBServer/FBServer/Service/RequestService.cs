@@ -17,7 +17,11 @@ namespace FBServer.Service
             string? resultString = await repo.GetRequestResultAsync(idRequest);
             if (string.IsNullOrEmpty(resultString))
             {
-                throw new Exception("Результат запроса отсутствует");
+                return new FrendsOperationResultDataEntity
+                {
+                    operationResult = new List<FrendsOperationResultEntity>(),
+                    userData = new Dictionary<int, string>()
+                };
             }
             else
             {
