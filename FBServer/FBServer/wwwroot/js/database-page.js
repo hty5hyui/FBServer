@@ -1224,9 +1224,20 @@ function showUserDetailsModal(userData) {
                                         <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
                                             <i data-feather="calendar" class="w-5 h-5 text-blue-400"></i>
                                         </div>
-                                        <div>
+                                        <div class="flex-1">
                                             <p class="text-dark-300 text-xs font-medium mb-1">Дата создания</p>
-                                            <p class="text-white text-sm font-semibold">${userData.dateOfCreation || 'Не указано'}</p>
+                                            <p class="text-white text-sm font-semibold" data-field-name="dateOfCreation">${userData.dateOfCreation || 'Не указано'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="info-item rounded-lg p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                                            <i data-feather="hash" class="w-5 h-5 text-yellow-400"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-dark-300 text-xs font-medium mb-1">ID страницы</p>
+                                            <p class="text-white text-sm font-semibold" data-field-name="pageId">${userData.pageId || 'Не указано'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1310,6 +1321,11 @@ function showUserDetailsModal(userData) {
                                             <div>
                                                 <label class="block text-sm font-medium text-dark-300 mb-1">Город</label>
                                                 <p class="text-white">${userData.city || 'Не указано'}</p>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="block text-sm font-medium text-dark-300 mb-1">Другой город</label>
+                                                <p class="text-white">${userData.anotherCity || 'Не указано'}</p>
                                             </div>
                                             
                                             <div>
@@ -1479,8 +1495,21 @@ function showUserDetailsModal(userData) {
                 </div>
             </div>
             
-            <!-- Нижняя панель с кнопкой закрытия -->
-            <div class="flex justify-end p-4 border-t border-dark-600 flex-shrink-0">
+            <!-- Нижняя панель с кнопками -->
+            <div class="flex justify-between p-4 border-t border-dark-600 flex-shrink-0" id="modalBottomPanel">
+                <button id="editBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
+                    <i data-feather="edit" class="w-4 h-4"></i>
+                    Редактировать
+                </button>
+                <div class="flex gap-3 hidden" id="editButtons">
+                    <button id="saveBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
+                        <i data-feather="save" class="w-4 h-4"></i>
+                        Сохранить
+                    </button>
+                    <button id="cancelEditBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">
+                        Отмена
+                    </button>
+                </div>
                 <button id="closeModalBottom" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">
                     Закрыть
                 </button>
@@ -1566,6 +1595,343 @@ function showUserDetailsModal(userData) {
             }
         });
     });
+
+    // Сохраняем исходные данные для возможности отмены
+    let originalData = JSON.parse(JSON.stringify(userData));
+    let isEditMode = false;
+
+    // Функция для создания поля редактирования
+    const createEditField = (fieldName, value, isTextarea = false) => {
+        const fieldValue = value || '';
+        if (isTextarea) {
+            return `<textarea data-field="${fieldName}" class="w-full px-3 py-2 bg-dark-600 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none" rows="3">${fieldValue}</textarea>`;
+        }
+        return `<input type="text" data-field="${fieldName}" class="w-full px-3 py-2 bg-dark-600 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none" value="${fieldValue.replace(/"/g, '&quot;')}">`;
+    };
+
+    // Функция для переключения в режим редактирования
+    const enterEditMode = () => {
+        isEditMode = true;
+        const editBtn = modal.querySelector('#editBtn');
+        const editButtons = modal.querySelector('#editButtons');
+        
+        editBtn.classList.add('hidden');
+        editButtons.classList.remove('hidden');
+        
+        // Преобразуем все поля в редактируемые
+        const fieldsToEdit = [
+            'fio', 'subscribers', 'work', 'university', 'school', 'home', 'city', 'anotherCity',
+            'address', 'mobile', 'email', 'anotherContactInfo', 'whatsapp', 'site', 
+            'anotherWebSocialmedia', 'male', 'language', 'openingHours', 'pronounsInTheSystem',
+            'anotherBasicInformation', 'category', 'pageId', 'dateOfCreation', 'reklama', 'info', 
+            'another', 'link', 'work1', 'university1', 'school1', 'vk', 'instagram', 'skype',
+            'linkedin', 'checkLink', 'spotify', 'kakaotalk', 'youtube', 'x', 'tiktok', 'snapchat',
+            'wechat', 'threads', 'line', 'twitch', 'askfm', 'pinterest', 'soundcloud', 'ok'
+        ];
+        
+        fieldsToEdit.forEach(fieldName => {
+            const value = userData[fieldName] || '';
+            // Находим все элементы с этим полем
+            const elements = modal.querySelectorAll(`[data-field-name="${fieldName}"]`);
+            elements.forEach(el => {
+                const parent = el.parentElement;
+                if (parent) {
+                    const isTextarea = ['info', 'reklama', 'anotherBasicInformation'].includes(fieldName);
+                    const editField = createEditField(fieldName, value, isTextarea);
+                    parent.innerHTML = editField;
+                }
+            });
+        });
+        
+        // Также преобразуем основные поля в боковой панели
+        const fioElement = modal.querySelector('h4.text-xl');
+        if (fioElement && fioElement.parentElement) {
+            const parent = fioElement.parentElement;
+            parent.innerHTML = `
+                <input type="text" data-field="fio" class="w-full px-3 py-2 bg-dark-600 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none text-center" value="${(userData.fio || '').replace(/"/g, '&quot;')}">
+            `;
+        }
+        
+        // Преобразуем поля в боковой панели
+        const dateOfCreationElement = modal.querySelector('[data-field-name="dateOfCreation"]');
+        if (dateOfCreationElement) {
+            const parent = dateOfCreationElement.parentElement;
+            if (parent) {
+                parent.innerHTML = `
+                    <input type="text" data-field="dateOfCreation" class="w-full px-3 py-2 bg-dark-600 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none" value="${(userData.dateOfCreation || '').replace(/"/g, '&quot;')}">
+                `;
+            }
+        }
+        
+        const pageIdElement = modal.querySelector('[data-field-name="pageId"]');
+        if (pageIdElement) {
+            const parent = pageIdElement.parentElement;
+            if (parent) {
+                parent.innerHTML = `
+                    <input type="text" data-field="pageId" class="w-full px-3 py-2 bg-dark-600 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none" value="${(userData.pageId || '').replace(/"/g, '&quot;')}">
+                `;
+            }
+        }
+        
+        const categoryElement = modal.querySelector('.info-item:has([data-feather="tag"]) p.text-white');
+        if (categoryElement) {
+            const parent = categoryElement.parentElement;
+            parent.innerHTML = `
+                <input type="text" data-field="category" class="w-full px-3 py-2 bg-dark-600 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none" value="${(userData.category || '').replace(/"/g, '&quot;')}">
+            `;
+        }
+        
+        const linkElement = modal.querySelector('.info-item:has([data-feather="link"]) a');
+        if (linkElement) {
+            const parent = linkElement.parentElement;
+            parent.innerHTML = `
+                <input type="text" data-field="link" class="w-full px-3 py-2 bg-dark-600 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none" value="${(userData.link || '').replace(/"/g, '&quot;')}">
+            `;
+        }
+
+        // Обновляем все поля во вкладках
+        updateTabFieldsToEdit(modal, userData, createEditField);
+    };
+
+    // Функция для обновления полей во вкладках
+    const updateTabFieldsToEdit = (modal, data, createEditField) => {
+        // Контакты
+        updateFieldInTab(modal, 'mobile', data.mobile);
+        updateFieldInTab(modal, 'email', data.email);
+        updateFieldInTab(modal, 'whatsapp', data.whatsapp);
+        updateFieldInTab(modal, 'site', data.site);
+        updateFieldInTab(modal, 'city', data.city);
+        updateFieldInTab(modal, 'anotherCity', data.anotherCity);
+        updateFieldInTab(modal, 'home', data.home);
+        updateFieldInTab(modal, 'address', data.address);
+        updateFieldInTab(modal, 'anotherContactInfo', data.anotherContactInfo, true);
+        
+        // Социальные сети
+        updateFieldInTab(modal, 'instagram', data.instagram);
+        updateFieldInTab(modal, 'vk', data.vk);
+        updateFieldInTab(modal, 'youtube', data.youtube);
+        updateFieldInTab(modal, 'tiktok', data.tiktok);
+        updateFieldInTab(modal, 'x', data.x);
+        updateFieldInTab(modal, 'linkedin', data.linkedin);
+        updateFieldInTab(modal, 'skype', data.skype);
+        updateFieldInTab(modal, 'snapchat', data.snapchat);
+        updateFieldInTab(modal, 'anotherWebSocialmedia', data.anotherWebSocialmedia);
+        
+        // Работа и образование
+        updateFieldInTab(modal, 'work', data.work, true);
+        updateFieldInTab(modal, 'work1', data.work1, true);
+        updateFieldInTab(modal, 'university', data.university);
+        updateFieldInTab(modal, 'university1', data.university1);
+        updateFieldInTab(modal, 'school', data.school);
+        updateFieldInTab(modal, 'school1', data.school1);
+        
+        // Дополнительно
+        updateFieldInTab(modal, 'subscribers', data.subscribers);
+        updateFieldInTab(modal, 'openingHours', data.openingHours);
+        updateFieldInTab(modal, 'language', data.language);
+        updateFieldInTab(modal, 'male', data.male);
+        updateFieldInTab(modal, 'pronounsInTheSystem', data.pronounsInTheSystem);
+        updateFieldInTab(modal, 'anotherBasicInformation', data.anotherBasicInformation, true);
+        updateFieldInTab(modal, 'reklama', data.reklama, true);
+        updateFieldInTab(modal, 'info', data.info, true);
+        updateFieldInTab(modal, 'another', data.another);
+    };
+
+    const updateFieldInTab = (modal, fieldName, value, isTextarea = false) => {
+        // Находим label с текстом, который соответствует полю
+        const labels = modal.querySelectorAll('label');
+        labels.forEach(label => {
+            const labelText = label.textContent.trim();
+            const fieldMap = {
+                'Мобильный телефон': 'mobile',
+                'Email': 'email',
+                'WhatsApp': 'whatsapp',
+                'Сайт': 'site',
+                'Город': 'city',
+                'Другой город': 'anotherCity',
+                'Домашний адрес': 'home',
+                'Адрес': 'address',
+                'Дополнительная контактная информация': 'anotherContactInfo',
+                'Instagram': 'instagram',
+                'VK': 'vk',
+                'YouTube': 'youtube',
+                'TikTok': 'tiktok',
+                'Twitter/X': 'x',
+                'LinkedIn': 'linkedin',
+                'Skype': 'skype',
+                'Snapchat': 'snapchat',
+                'Другие социальные сети': 'anotherWebSocialmedia',
+                'Работа': 'work',
+                'Дополнительная работа': 'work1',
+                'Университет': 'university',
+                'Дополнительный университет': 'university1',
+                'Школа': 'school',
+                'Дополнительная школа': 'school1',
+                'Подписчики': 'subscribers',
+                'Часы работы': 'openingHours',
+                'Язык': 'language',
+                'Пол': 'male',
+                'Местоимения в системе': 'pronounsInTheSystem',
+                'Другая базовая информация': 'anotherBasicInformation',
+                'Реклама': 'reklama',
+                'Информация': 'info',
+                'Другое': 'another'
+            };
+            
+            if (fieldMap[labelText] === fieldName) {
+                const nextSibling = label.nextElementSibling;
+                if (nextSibling && nextSibling.tagName === 'P') {
+                    const editField = createEditField(fieldName, value || '', isTextarea);
+                    nextSibling.outerHTML = editField;
+                }
+            }
+        });
+    };
+
+    // Функция для выхода из режима редактирования
+    const exitEditMode = (restoreOriginal = false) => {
+        isEditMode = false;
+        const editBtn = modal.querySelector('#editBtn');
+        const editButtons = modal.querySelector('#editButtons');
+        
+        editBtn.classList.remove('hidden');
+        editButtons.classList.add('hidden');
+        
+        if (restoreOriginal) {
+            // Восстанавливаем исходные данные
+            userData = JSON.parse(JSON.stringify(originalData));
+            // Перезагружаем модальное окно
+            closeModal();
+            showUserDetailsModal(userData);
+        }
+    };
+
+    // Функция для сохранения данных
+    const saveUserData = async () => {
+        const saveBtn = modal.querySelector('#saveBtn');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Сохранение...';
+        feather.replace();
+        
+        try {
+            // Собираем все данные из полей
+            const formData = {
+                userId: userData.userId,
+                fio: getFieldValue(modal, 'fio'),
+                subscribers: getFieldValue(modal, 'subscribers'),
+                work: getFieldValue(modal, 'work'),
+                university: getFieldValue(modal, 'university'),
+                school: getFieldValue(modal, 'school'),
+                home: getFieldValue(modal, 'home'),
+                city: getFieldValue(modal, 'city'),
+                anotherCity: getFieldValue(modal, 'anotherCity'),
+                address: getFieldValue(modal, 'address'),
+                mobile: getFieldValue(modal, 'mobile'),
+                email: getFieldValue(modal, 'email'),
+                anotherContactInfo: getFieldValue(modal, 'anotherContactInfo'),
+                whatsapp: getFieldValue(modal, 'whatsapp'),
+                site: getFieldValue(modal, 'site'),
+                anotherWebSocialmedia: getFieldValue(modal, 'anotherWebSocialmedia'),
+                male: getFieldValue(modal, 'male'),
+                language: getFieldValue(modal, 'language'),
+                openingHours: getFieldValue(modal, 'openingHours'),
+                pronounsInTheSystem: getFieldValue(modal, 'pronounsInTheSystem'),
+                anotherBasicInformation: getFieldValue(modal, 'anotherBasicInformation'),
+                category: getFieldValue(modal, 'category'),
+                pageId: getFieldValue(modal, 'pageId'),
+                dateOfCreation: getFieldValue(modal, 'dateOfCreation'),
+                reklama: getFieldValue(modal, 'reklama'),
+                info: getFieldValue(modal, 'info'),
+                another: getFieldValue(modal, 'another'),
+                link: getFieldValue(modal, 'link'),
+                work1: getFieldValue(modal, 'work1'),
+                university1: getFieldValue(modal, 'university1'),
+                school1: getFieldValue(modal, 'school1'),
+                vk: getFieldValue(modal, 'vk'),
+                instagram: getFieldValue(modal, 'instagram'),
+                skype: getFieldValue(modal, 'skype'),
+                linkedin: getFieldValue(modal, 'linkedin'),
+                checkLink: getFieldValue(modal, 'checkLink') || null,
+                spotify: getFieldValue(modal, 'spotify'),
+                kakaotalk: getFieldValue(modal, 'kakaotalk'),
+                youtube: getFieldValue(modal, 'youtube'),
+                x: getFieldValue(modal, 'x'),
+                tiktok: getFieldValue(modal, 'tiktok'),
+                snapchat: getFieldValue(modal, 'snapchat'),
+                wechat: getFieldValue(modal, 'wechat'),
+                threads: getFieldValue(modal, 'threads'),
+                line: getFieldValue(modal, 'line'),
+                twitch: getFieldValue(modal, 'twitch'),
+                askfm: getFieldValue(modal, 'askfm'),
+                pinterest: getFieldValue(modal, 'pinterest'),
+                soundcloud: getFieldValue(modal, 'soundcloud'),
+                ok: getFieldValue(modal, 'ok')
+            };
+            
+            // Преобразуем пустые строки в null
+            Object.keys(formData).forEach(key => {
+                if (formData[key] === '' || formData[key] === undefined) {
+                    formData[key] = null;
+                }
+            });
+            
+            // Конвертируем checkLink в число если он есть
+            if (formData.checkLink !== null && formData.checkLink !== undefined) {
+                formData.checkLink = parseInt(formData.checkLink, 10) || null;
+            }
+            
+            const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/data`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            if (response.ok) {
+                showNotification('Данные успешно сохранены!', 'success');
+                // Обновляем данные пользователя
+                userData = formData;
+                originalData = JSON.parse(JSON.stringify(userData));
+                exitEditMode(false);
+                // Перезагружаем модальное окно с обновленными данными
+                closeModal();
+                loadUserDetails(userData.userId);
+            } else {
+                const errorText = await response.text();
+                showNotification(`Ошибка сохранения: ${errorText}`, 'error');
+            }
+        } catch (error) {
+            showNotification(`Ошибка: ${error.message}`, 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+            feather.replace();
+        }
+    };
+
+    const getFieldValue = (modal, fieldName) => {
+        const field = modal.querySelector(`[data-field="${fieldName}"]`);
+        return field ? (field.value || '').trim() : (userData[fieldName] || '');
+    };
+
+    // Обработчики кнопок редактирования
+    const editBtn = modal.querySelector('#editBtn');
+    const saveBtn = modal.querySelector('#saveBtn');
+    const cancelEditBtn = modal.querySelector('#cancelEditBtn');
+    
+    if (editBtn) {
+        editBtn.addEventListener('click', enterEditMode);
+    }
+    
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveUserData);
+    }
+    
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', () => exitEditMode(true));
+    }
 }
 
 // Функция для обновления пагинации
