@@ -56,8 +56,6 @@ namespace FBServer.Service
                             }
                         }
                     }
-                    Console.WriteLine(user.userId);
-                    Console.WriteLine(string.Join(", ", user.frendsId.Select(k => $"{k.Key} (глубина {k.Value})")));
                 }
 
                 //Инициализация результата анализа друзей
