@@ -23,9 +23,6 @@ namespace FBServer.Service
         /// <summary>
         /// Метод для анализа друзей пользователей на заданную глубину. Находит общих друзей между пользователями.
         /// </summary>
-        /// <param name="idUsers"></param> Список идентификаторов пользователей для анализа.  
-        /// <param name="depth"></param> Глубина анализа друзей.
-        /// <returns></returns>
         public async Task StartFrendsAnalyseAsync(List<int> idUsers, int depth, int idRequest)
         {
 
@@ -44,21 +41,25 @@ namespace FBServer.Service
                 }
 
                 //Получаем полный список друзей для каждого пользователя на заданную глубину
-                for (int i = 0; i < depth; i++)
+                foreach (FrendsOperationEntity user in users.ToList())
                 {
-                    foreach (FrendsOperationEntity user in users.ToList())
+                    for (int i = 1; i <= depth; i++)
                     {
-                        List<int> frendsIds = await repo.GetUserFrendsAsync(user.userId);
+                        List<int> frendsIds = await repo.GetUserFrendsAsync(user.userId, i);
+
                         foreach (int frendId in frendsIds)
                         {
+                            //Проверка на наличие друга в списке, чтобы не добавлять повторно
                             if (!user.frendsId.ContainsKey(frendId))
                             {
-                                user.frendsId.Add(frendId, i + 1);
+                                user.frendsId.Add(frendId, i);
                             }
                         }
                     }
-
+                    Console.WriteLine(user.userId);
+                    Console.WriteLine(string.Join(", ", user.frendsId.Select(k => $"{k.Key} (глубина {k.Value})")));
                 }
+
                 //Инициализация результата анализа друзей
                 List<FrendsOperationResultEntity> resultEntity = new List<FrendsOperationResultEntity>();
                 Dictionary<int, string> userData = new Dictionary<int, string>();

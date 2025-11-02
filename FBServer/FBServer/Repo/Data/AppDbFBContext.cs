@@ -1,11 +1,13 @@
 ﻿using FBServer.Entity.db;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Contracts;
 
 public class AppDbFBContext : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<Request> Requests { get; set; }
+    public DbSet<Flags> Flags { get; set; }
 
     public AppDbFBContext(DbContextOptions<AppDbFBContext> options) : base(options)
     {
@@ -21,6 +23,12 @@ public class AppDbFBContext : DbContext
             entity.ToTable("users", "public");
             entity.Property(e => e.UserId).HasColumnName("user_id");
         });
+
+        modelBuilder.Entity<User>()
+            .HasMany(f => f.Flags)
+            .WithOne(u => u.User)
+            .HasForeignKey(pi => pi.idUser)
+            .OnDelete(DeleteBehavior.Cascade);
 
         //Конфигурация для Friendships
         modelBuilder.Entity<Friendship>(entity =>

@@ -14,7 +14,6 @@ namespace FBServer.Service
             return new UserDTO
             {
                 UserId = user.UserId,
-                Avatar = user.Avatar,
                 Fio = user.Fio,
                 Subscribers = user.Subscribers,
                 Work = user.Work,
@@ -24,7 +23,7 @@ namespace FBServer.Service
                 City = user.City,
                 AnotherCity = user.AnotherCity,
                 Address = user.Address,
-                Mobile = user.Mobile == null ? null : user.Mobile.Trim(),
+                Mobile = user.Mobile,
                 Email = user.Email,
                 AnotherContactInfo = user.AnotherContactInfo,
                 Whatsapp = user.Whatsapp,
@@ -66,7 +65,69 @@ namespace FBServer.Service
                 CheckLink = user.CheckLink,
                 AvatarByte = user.AvatarByte == null ? null : Convert.ToBase64String(user.AvatarByte)
             };
+        }
 
+        public static User ToUser(UserDTO dto)
+        {
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto));
+            }
+
+            return new User
+            {
+                UserId = dto.UserId,
+                Fio = dto.Fio,
+                Subscribers = dto.Subscribers,
+                Work = dto.Work,
+                University = dto.University,
+                School = dto.School,
+                Home = dto.Home,
+                City = dto.City,
+                AnotherCity = dto.AnotherCity,
+                Address = dto.Address,
+                Mobile = dto.Mobile,
+                Email = dto.Email,
+                AnotherContactInfo = dto.AnotherContactInfo,
+                Whatsapp = dto.Whatsapp,
+                Site = dto.Site,
+                AnotherWebSocialmedia = dto.AnotherWebSocialmedia,
+                Male = dto.Male,
+                Language = dto.Language,
+                OpeningHours = dto.OpeningHours,
+                PronounsInTheSystem = dto.PronounsInTheSystem,
+                AnotherBasicInformation = dto.AnotherBasicInformation,
+                Category = dto.Category,
+                PageId = dto.PageId,
+                DateOfCreation = dto.DateOfCreation,
+                Reklama = dto.Reklama,
+                Info = dto.Info,
+                Another = dto.Another,
+                Link = dto.Link,
+                Work1 = dto.Work1,
+                University1 = dto.University1,
+                School1 = dto.School1,
+                Vk = dto.Vk,
+                Instagram = dto.Instagram,
+                Skype = dto.Skype,
+                Linkedin = dto.Linkedin,
+                CheckLink = dto.CheckLink,
+                Spotify = dto.Spotify,
+                Kakaotalk = dto.Kakaotalk,
+                Youtube = dto.Youtube,
+                X = dto.X,
+                Tiktok = dto.Tiktok,
+                Snapchat = dto.Snapchat,
+                Wechat = dto.Wechat,
+                Threads = dto.Threads,
+                Line = dto.Line,
+                Twitch = dto.Twitch,
+                Askfm = dto.Askfm,
+                Pinterest = dto.Pinterest,
+                Soundcloud = dto.Soundcloud,
+                Ok = dto.Ok,
+                AvatarByte = string.IsNullOrEmpty(dto.AvatarByte) ? null : Convert.FromBase64String(dto.AvatarByte)
+            };
         }
     }
 }

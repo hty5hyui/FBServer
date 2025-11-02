@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FBServer.Migrations
 {
     [DbContext(typeof(AppDbFBContext))]
-    partial class AppDbFBContextModelSnapshot : ModelSnapshot
+    [Migration("20251030181232_flags")]
+    partial class flags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,6 +169,10 @@ namespace FBServer.Migrations
                     b.Property<string>("Askfm")
                         .HasColumnType("text")
                         .HasColumnName("askfm");
+
+                    b.Property<string>("Avatar")
+                        .HasColumnType("text")
+                        .HasColumnName("avatar");
 
                     b.Property<byte[]>("AvatarByte")
                         .HasColumnType("bytea")

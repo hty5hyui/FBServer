@@ -52,7 +52,9 @@ namespace FBServer.Repo
 
             return data;
         }
-
+        /// <summary>
+        /// Получение полных данных пользователя по id.
+        /// </summary>
         internal async Task<User> GetUserAsync(int idUser)
         {
             User? user = await _dbContext.Users.FirstOrDefaultAsync(n => n.UserId == idUser);
@@ -63,13 +65,28 @@ namespace FBServer.Repo
             return user;
         }
 
-        internal async Task<List<int>> GetUserFrendsAsync(int userId)
+        /// <summary>
+        /// Получение аватарки пользователя по id.
+        /// </summary>
+        internal async Task<byte[]?> GetUserAvatarAsync(int idUser)
+        {
+            byte[]? avatar = await _dbContext.Users
+                                           .Where(u => u.UserId == idUser)
+                                           .Select(u => u.AvatarByte)
+                                           .FirstOrDefaultAsync();
+            return avatar;
+        }
+
+        /// <summary>
+        /// Получаем список друзей пользователя на заданную глубину.
+        /// </summary>
+        internal async Task<List<int>> GetUserFrendsAsync(int userId, int depth)
         {
             return await _dbContext.Friendships
-                                   .Where(f => f.User1Id == userId && f.Handshake == 1)
+                                   .Where(f => f.User1Id == userId && f.Handshake == depth)
                                    .Select(f => f.User2Id)
                                    .Union(_dbContext.Friendships
-                                                    .Where(f => f.User2Id == userId && f.Handshake == 1)
+                                                    .Where(f => f.User2Id == userId && f.Handshake == depth)
                                                     .Select(f => f.User1Id))
                                    .ToListAsync();
         }
@@ -135,6 +152,12 @@ namespace FBServer.Repo
                                    .Where(r => r.id == idRequest)
                                    .Select(r => r.result)
                                    .FirstOrDefaultAsync();
+        }
+
+        internal async Task UpdateUserAsync(User user)
+        {
+            _dbContext.Users.Update(user);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

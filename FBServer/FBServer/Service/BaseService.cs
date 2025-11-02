@@ -32,6 +32,13 @@ namespace FBServer.Service
             UserDTO userDTO = UserMapper.ToUserDTO(user);
             return userDTO;
         }
+
+        public async Task UpdateUserAsync(UserDTO userDTO)
+        {
+            User user = UserMapper.ToUser(userDTO);
+            user.AvatarByte = await repo.GetUserAvatarAsync(userDTO.UserId);
+            await repo.UpdateUserAsync(user);
+        }
     }
 
 }

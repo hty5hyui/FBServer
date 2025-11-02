@@ -7,7 +7,7 @@ namespace FBServer.Controller
 {
     [ApiController]
     [Route("[controller]")]
-    public class BaseController(BaseService baseService):ControllerBase
+    public class BaseController(BaseService baseService) : ControllerBase
     {
         [HttpPost("all")]
         public async Task<IActionResult> GetPreviewUsers([FromBody] PageSearchEntity pageQuery)
@@ -17,7 +17,7 @@ namespace FBServer.Controller
                 UserPreviewPageData userPreviews = await baseService.GetUserPreviewsAsync(pageQuery);
                 return new JsonResult(userPreviews);
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения превью списка: {ex.Message}");
             }
@@ -34,6 +34,20 @@ namespace FBServer.Controller
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения данных пользователя: {ex.Message}");
+            }
+        }
+
+        [HttpPost("data")]
+        public async Task<IActionResult> UpdateDataUser([FromBody] UserDTO userDTO)
+        {
+            try
+            {
+                await baseService.UpdateUserAsync(userDTO);
+                return StatusCode(StatusCodes.Status200OK, "Данные успешно обновлены");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка обновления данных пользователя: {ex.Message}");
             }
         }
     }

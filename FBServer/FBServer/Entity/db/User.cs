@@ -10,9 +10,6 @@
         [Column("user_id")]
         public int UserId { get; set; }
             
-        [Column("avatar")]
-        public string? Avatar { get; set; }
-
         [Column("fio")]
         public string? Fio { get; set; }
 
@@ -162,13 +159,15 @@
 
         [Column("avatar_byte")]
         public byte[]? AvatarByte { get; set; }
+
+        //-----------------------------------------------------
+        public virtual ICollection<Flags>? Flags { get; set; }
     }
 
 
     public class UserDTO
     {
         public int UserId { get; set; }
-        public string? Avatar { get; set; }
         public string? Fio { get; set; }
         public string? Subscribers { get; set; }
         public string? Work { get; set; }

@@ -25,7 +25,7 @@ namespace FBServer.Service
         public async Task StopScriptAsync(int id)
         {
             ScriptParam scriptParam = await repo.GetScriptParamAsync(id);
-            await _httpClient.GetAsync($"http://{scriptParam.ip}:{scriptParam.port}/status");
+            await _httpClient.GetAsync($"http://{scriptParam.ip}:{scriptParam.port}/stop");
         }
 
         public async Task<List<ScriptParam>> GetAllScriptParamsAsync()
