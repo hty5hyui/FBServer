@@ -20,7 +20,8 @@ namespace FBServer.Repo
                                                Fio = c.Fio,
                                                Link = c.Link,
                                                Mobile = c.Mobile,
-                                               Subscribers = c.Subscribers
+                                               Subscribers = c.Subscribers,
+                                               Flags = c.Flags.Select(f => f.type).ToList()
                                            })
                                            .ToListAsync();
             int rowCount = await _dbContext.Users.CountAsync();
