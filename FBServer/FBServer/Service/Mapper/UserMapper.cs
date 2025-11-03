@@ -1,6 +1,6 @@
 ﻿using FBServer.Entity.db;
 
-namespace FBServer.Service
+namespace FBServer.Service.Mapper
 {
     public class UserMapper
     {
@@ -63,7 +63,7 @@ namespace FBServer.Service
                 DateOfCreation = user.DateOfCreation,
                 PronounsInTheSystem = user.PronounsInTheSystem,
                 CheckLink = user.CheckLink,
-                AvatarByte = user.AvatarByte == null ? null : Convert.ToBase64String(user.AvatarByte)
+                AvatarByte = user.AvatarByte == null ? null : Convert.ToBase64String(user.AvatarByte),
             };
         }
 

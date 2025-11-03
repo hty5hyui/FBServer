@@ -218,6 +218,7 @@
         public string? Soundcloud { get; set; }
         public string? Ok { get; set; }
         public string? AvatarByte { get; set; }
+        public List<FlagsDTO>? Flags { get; set; }
     }
 
     public class UserPreview

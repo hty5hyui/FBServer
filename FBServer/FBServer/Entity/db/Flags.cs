@@ -25,4 +25,14 @@ namespace FBServer.Entity.db
 
         public virtual User? User { get; set; }
     }
+
+    public class FlagsDTO
+    {
+        public int id { get; set; }
+        public int idUser { get; set; }
+        public DateTime date { get; set; }
+        public string type { get; set; }
+        public string? flagText { get; set; }
+        public string? author { get; set; }
+    }
 }

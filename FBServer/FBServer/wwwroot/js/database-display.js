@@ -107,13 +107,27 @@ function displayDatabaseData(data) {
                     ${data.map((item, index) => {
                         const recordNumber = (appState.currentPage - 1) * DB_CONFIG.recordsPerPage + index + 1;
                         const isSelected = appState.selectedUsers.has(item.userId);
+                        const hasFlags = item.flags && Array.isArray(item.flags) && item.flags.length > 0;
                         return `
                         <tr class="${isSelected ? 'bg-blue-900/20 border-l-4 border-blue-500' : ''}">
                             <td class="text-center">
                                 <input type="checkbox" class="user-checkbox" data-user-id="${item.userId}" ${isSelected ? 'checked' : ''} style="display: ${appState.isSelectionMode ? 'block' : 'none'};">
                             </td>
                             <td class="text-center text-dark-400 font-medium">${recordNumber}</td>
-                            <td class="font-medium text-white">${item.fio || 'Не указано'}</td>
+                            <td class="font-medium text-white">
+                                <div class="flex items-center gap-2">
+                                    <span>${item.fio || 'Не указано'}</span>
+                                    ${hasFlags ? `
+                                    <div class="relative group">
+                                        <i data-feather="flag" class="w-4 h-4 text-yellow-400 cursor-help"></i>
+                                        <div class="absolute bottom-full left-0 mb-2 bg-dark-800 border border-dark-600 rounded-lg p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 min-w-48 max-w-xs">
+                                            <div class="text-xs font-medium text-yellow-300 mb-2">Флаги:</div>
+                                            <div class="text-sm text-white space-y-1">${item.flags.map(flag => `<div>• ${flag}</div>`).join('')}</div>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </td>
                             <td>
                                 <a href="${item.link}" target="_blank" class="text-blue-400 hover:text-blue-300 underline">
                                     ${item.link}

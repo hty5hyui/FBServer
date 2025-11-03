@@ -1,4 +1,5 @@
 ﻿using FBServer.Entity;
+using FBServer.Entity.BooksData;
 using FBServer.Entity.db;
 using FBServer.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,47 @@ namespace FBServer.Controller
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка обновления данных пользователя: {ex.Message}");
+            }
+        }
+
+        [HttpPost("flag")]
+        public async Task<IActionResult> AddUserFlag([FromBody] FlagsDTO flag)
+        {
+            try
+            {
+                await baseService.AddUserFlagAsync(flag);
+                return StatusCode(StatusCodes.Status200OK, "Данные успешно обновлены");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка обновления флагов пользователя: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("flag")]
+        public async Task<IActionResult> DeleteUserFlag([FromQuery] int idFlag)
+        {
+            try
+            {
+                await baseService.DeleteUserFlagAsync(idFlag);
+                return StatusCode(StatusCodes.Status200OK, "Данные успешно удалены");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка удаления флагов пользователя: {ex.Message}");
+            }
+        }
+
+        [HttpGet("flagTypes")]
+        public async Task<IActionResult> GetFlagType()
+        {
+            try
+            {
+                return new JsonResult(FlagsTypeList.GetAllTypes());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ошибка получения списка типов флагов: {ex.Message}");
             }
         }
     }

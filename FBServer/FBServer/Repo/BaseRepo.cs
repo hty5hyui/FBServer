@@ -126,11 +126,11 @@ namespace FBServer.Repo
                                            .Skip((page - 1) * pageSize)
                                            .Take(pageSize)
                                            .Select(c => new RequestDTO
-                                           {    
-                                                id = c.id,
-                                                date = c.date,
-                                                type = c.type,
-                                                status = c.status
+                                           {
+                                               id = c.id,
+                                               date = c.date,
+                                               type = c.type,
+                                               status = c.status
                                            })
                                            .ToListAsync();
             int rowCount = await _dbContext.Requests.CountAsync();
@@ -159,6 +159,32 @@ namespace FBServer.Repo
         {
             _dbContext.Users.Update(user);
             await _dbContext.SaveChangesAsync();
+        }
+
+        internal async Task AddUserFlagAsync(Flags flag)
+        {
+            await _dbContext.Flags.AddAsync(flag);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        internal async Task<List<FlagsDTO>?> GetUserFlagsAsync(int idUser)
+        {
+            return await _dbContext.Flags.Select(f => new FlagsDTO
+                                    {
+                                        id = f.id,
+                                        idUser = f.idUser,
+                                        date = f.date,
+                                        type = f.type,
+                                        flagText = f.flagText,
+                                        author = f.author
+                                    })
+                                   .Where(f => f.idUser == idUser)
+                                   .ToListAsync();
+        }
+
+        internal async Task DeleteFlagAsync(int idFlag)
+        {
+            await _dbContext.Flags.Where(f => f.id == idFlag).ExecuteDeleteAsync();
         }
     }
 }

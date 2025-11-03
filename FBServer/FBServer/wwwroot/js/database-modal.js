@@ -99,6 +99,9 @@ function showUserDetailsModal(userData) {
                                 <button class="tab-btn px-6 py-3 text-sm font-medium text-dark-400 hover:text-white" data-tab="additional">
                                     Дополнительно
                                 </button>
+                                <button class="tab-btn px-6 py-3 text-sm font-medium text-dark-400 hover:text-white" data-tab="flags">
+                                    Флаги
+                                </button>
                             </div>
                             
                             <!-- Содержимое вкладок -->
@@ -297,6 +300,68 @@ function showUserDetailsModal(userData) {
                                         <div>
                                             <label class="block text-sm font-medium text-dark-300 mb-2">Другое</label>
                                             <p class="text-white">${userData.another || 'Не указано'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Вкладка флагов -->
+                                <div id="tab-flags" class="tab-content hidden">
+                                    <div class="space-y-6">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <h4 class="text-lg font-semibold text-white">Список флагов</h4>
+                                            <button id="addFlagBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
+                                                <i data-feather="plus" class="w-4 h-4"></i>
+                                                Добавить флаг
+                                            </button>
+                                        </div>
+                                        
+                                        <div id="flagsList" class="space-y-3">
+                                            ${userData.flags && Array.isArray(userData.flags) && userData.flags.length > 0 
+                                                ? userData.flags.map((flag, index) => `
+                                                    <div class="bg-dark-600 rounded-lg p-4 border border-dark-500 flex items-start justify-between gap-4">
+                                                        <div class="flex-1">
+                                                            <div class="flex items-center gap-3 mb-2">
+                                                                <span class="text-xs font-medium text-dark-400 bg-dark-700 px-2 py-1 rounded">#${index + 1}</span>
+                                                                <span class="text-sm font-semibold text-yellow-400">${flag.type || 'Не указано'}</span>
+                                                                <span class="text-xs text-dark-400">${flag.date ? new Date(flag.date).toLocaleString('ru-RU') : 'Не указано'}</span>
+                                                            </div>
+                                                            <p class="text-white text-sm">${flag.flagText || 'Не указано'}</p>
+                                                            ${flag.author ? `<p class="text-xs text-dark-400 mt-2">Автор: ${flag.author}</p>` : ''}
+                                                        </div>
+                                                        <button class="delete-flag-btn bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2" data-flag-id="${flag.id}">
+                                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                                            Удалить
+                                                        </button>
+                                                    </div>
+                                                `).join('')
+                                                : '<p class="text-dark-400 text-center py-8">Флаги отсутствуют</p>'
+                                            }
+                                        </div>
+                                        
+                                        <!-- Форма добавления флага -->
+                                        <div id="addFlagForm" class="hidden bg-dark-600 rounded-lg p-4 border border-dark-500">
+                                            <h5 class="text-md font-semibold text-white mb-4">Добавить новый флаг</h5>
+                                            <div class="space-y-4">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-dark-300 mb-2">Тип флага</label>
+                                                    <select id="flagTypeSelect" class="w-full px-3 py-2 bg-dark-700 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none">
+                                                        <option value="">Выберите тип...</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-medium text-dark-300 mb-2">Текст флага</label>
+                                                    <textarea id="flagTextInput" class="w-full px-3 py-2 bg-dark-700 border border-dark-500 rounded-lg text-white text-sm focus:border-blue-500 focus:outline-none" rows="3" placeholder="Введите текст флага..."></textarea>
+                                                </div>
+                                                <div class="flex items-center gap-3">
+                                                    <button id="saveFlagBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
+                                                        <i data-feather="save" class="w-4 h-4"></i>
+                                                        Сохранить
+                                                    </button>
+                                                    <button id="cancelAddFlagBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                                        Отмена
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -739,6 +804,192 @@ function showUserDetailsModal(userData) {
     
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', () => exitEditMode(true));
+    }
+
+    // Обработчики для работы с флагами
+    let flagTypes = [];
+    
+    // Функция для загрузки типов флагов
+    const loadFlagTypes = async () => {
+        try {
+            const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/flagTypes`, {});
+            flagTypes = await response.json();
+            
+            const select = modal.querySelector('#flagTypeSelect');
+            if (select) {
+                select.innerHTML = '<option value="">Выберите тип...</option>';
+                flagTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            showNotification(`Ошибка загрузки типов флагов: ${error.message}`, 'error');
+        }
+    };
+    
+    // Функция для обновления списка флагов
+    const refreshFlagsList = async () => {
+        try {
+            const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/data?idUser=${userData.userId}`, {});
+            const updatedUserData = await response.json();
+            userData.flags = updatedUserData.flags || [];
+            
+            const flagsList = modal.querySelector('#flagsList');
+            if (flagsList) {
+                if (userData.flags && userData.flags.length > 0) {
+                    flagsList.innerHTML = userData.flags.map((flag, index) => `
+                        <div class="bg-dark-600 rounded-lg p-4 border border-dark-500 flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="text-xs font-medium text-dark-400 bg-dark-700 px-2 py-1 rounded">#${index + 1}</span>
+                                    <span class="text-sm font-semibold text-yellow-400">${flag.type || 'Не указано'}</span>
+                                    <span class="text-xs text-dark-400">${flag.date ? new Date(flag.date).toLocaleString('ru-RU') : 'Не указано'}</span>
+                                </div>
+                                <p class="text-white text-sm">${flag.flagText || 'Не указано'}</p>
+                                ${flag.author ? `<p class="text-xs text-dark-400 mt-2">Автор: ${flag.author}</p>` : ''}
+                            </div>
+                            <button class="delete-flag-btn bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2" data-flag-id="${flag.id}">
+                                <i data-feather="trash-2" class="w-4 h-4"></i>
+                                Удалить
+                            </button>
+                        </div>
+                    `).join('');
+                    feather.replace();
+                    // Добавляем обработчики для новых кнопок удаления
+                    addDeleteFlagHandlers();
+                } else {
+                    flagsList.innerHTML = '<p class="text-dark-400 text-center py-8">Флаги отсутствуют</p>';
+                }
+            }
+        } catch (error) {
+            showNotification(`Ошибка обновления списка флагов: ${error.message}`, 'error');
+        }
+    };
+    
+    // Функция для добавления обработчиков удаления флагов
+    const addDeleteFlagHandlers = () => {
+        const deleteButtons = modal.querySelectorAll('.delete-flag-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', async function() {
+                const flagId = this.getAttribute('data-flag-id');
+                if (!flagId) return;
+                
+                if (!confirm('Вы уверены, что хотите удалить этот флаг?')) {
+                    return;
+                }
+                
+                const originalText = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i>';
+                feather.replace();
+                
+                try {
+                    const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/flag?idFlag=${flagId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        showNotification('Флаг успешно удален', 'success');
+                        await refreshFlagsList();
+                    } else {
+                        const errorText = await response.text();
+                        showNotification(`Ошибка удаления флага: ${errorText}`, 'error');
+                    }
+                } catch (error) {
+                    showNotification(`Ошибка: ${error.message}`, 'error');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = originalText;
+                    feather.replace();
+                }
+            });
+        });
+    };
+    
+    // Добавить обработчики для существующих кнопок удаления
+    addDeleteFlagHandlers();
+    
+    // Обработчик кнопки "Добавить флаг"
+    const addFlagBtn = modal.querySelector('#addFlagBtn');
+    const addFlagForm = modal.querySelector('#addFlagForm');
+    const cancelAddFlagBtn = modal.querySelector('#cancelAddFlagBtn');
+    
+    if (addFlagBtn) {
+        addFlagBtn.addEventListener('click', async () => {
+            addFlagForm.classList.remove('hidden');
+            await loadFlagTypes();
+        });
+    }
+    
+    if (cancelAddFlagBtn) {
+        cancelAddFlagBtn.addEventListener('click', () => {
+            addFlagForm.classList.add('hidden');
+            const select = modal.querySelector('#flagTypeSelect');
+            const textarea = modal.querySelector('#flagTextInput');
+            if (select) select.value = '';
+            if (textarea) textarea.value = '';
+        });
+    }
+    
+    // Обработчик кнопки "Сохранить" флаг
+    const saveFlagBtn = modal.querySelector('#saveFlagBtn');
+    if (saveFlagBtn) {
+        saveFlagBtn.addEventListener('click', async () => {
+            const select = modal.querySelector('#flagTypeSelect');
+            const textarea = modal.querySelector('#flagTextInput');
+            
+            const type = select ? select.value.trim() : '';
+            const flagText = textarea ? textarea.value.trim() : '';
+            
+            if (!type) {
+                showNotification('Пожалуйста, выберите тип флага', 'warning');
+                return;
+            }
+            
+            if (!flagText) {
+                showNotification('Пожалуйста, введите текст флага', 'warning');
+                return;
+            }
+            
+            const originalText = saveFlagBtn.innerHTML;
+            saveFlagBtn.disabled = true;
+            saveFlagBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Сохранение...';
+            feather.replace();
+            
+            try {
+                const response = await fetchWithRetry(`${DB_CONFIG.baseUrl}/Base/flag`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        idUser: userData.userId,
+                        type: type,
+                        flagText: flagText
+                    })
+                });
+                
+                if (response.ok) {
+                    showNotification('Флаг успешно добавлен', 'success');
+                    addFlagForm.classList.add('hidden');
+                    if (select) select.value = '';
+                    if (textarea) textarea.value = '';
+                    await refreshFlagsList();
+                } else {
+                    const errorText = await response.text();
+                    showNotification(`Ошибка добавления флага: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Ошибка: ${error.message}`, 'error');
+            } finally {
+                saveFlagBtn.disabled = false;
+                saveFlagBtn.innerHTML = originalText;
+                feather.replace();
+            }
+        });
     }
 }
 
