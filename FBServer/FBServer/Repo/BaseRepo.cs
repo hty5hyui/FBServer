@@ -33,9 +33,15 @@ namespace FBServer.Repo
         internal async Task<UserPreviewPageData> GetUserPreviewsSearchAsync(PageSearchEntity pageQuery)
         {
             UserPreviewPageData data = new UserPreviewPageData();
+
+            string query = $"SELECT users.* FROM users " +
+                           $"LEFT JOIN \"Flags\" ON users.user_id = \"Flags\".\"idUser\" " +
+                           $"WHERE {pageQuery.searchQuery} " +
+                           $"GROUP BY users.user_id";
+
             data.userPreviews = await _dbContext.Users
-                                   .FromSqlRaw($"SELECT * FROM users WHERE {pageQuery.searchQuery}")
-                                   .OrderBy(a => a.UserId)
+                                   .FromSqlRaw(query)
+                                   .OrderByDescending(a => a.UserId)
                                    .Skip((pageQuery.page - 1) * pageSize)
                                    .Take(pageSize)
                                    .Select(c => new UserPreview
@@ -45,10 +51,11 @@ namespace FBServer.Repo
                                        Fio = c.Fio,
                                        Link = c.Link,
                                        Mobile = c.Mobile,
-                                       Subscribers = c.Subscribers
+                                       Subscribers = c.Subscribers,
+                                       Flags = c.Flags.Select(f => f.type).ToList()
                                    }).ToListAsync();
 
-            int rowCount = await _dbContext.Users.FromSqlRaw($"SELECT * FROM users WHERE {pageQuery.searchQuery}").CountAsync();
+            int rowCount = await _dbContext.Users.FromSqlRaw(query).CountAsync();
             data.pageCount = (int)Math.Ceiling((double)rowCount / pageSize);
 
             return data;

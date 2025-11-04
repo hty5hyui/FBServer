@@ -10,9 +10,10 @@ function createSearchField(fieldKey = '', fieldValue = '', condition = 'contains
                 <div class="flex-1">
                     <select class="search-field-select w-full bg-dark-700 border border-dark-500 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 focus:outline-none">
                         <option value="">Выберите поле</option>
-                        ${Object.entries(SEARCH_FIELDS).map(([key, label]) => 
-                            `<option value="${key}" ${key === fieldKey ? 'selected' : ''}>${label}</option>`
-                        ).join('')}
+                        ${Object.entries(SEARCH_FIELDS).map(([key, label]) => {
+                            const escapedKey = key.replace(/"/g, '&quot;');
+                            return `<option value="${escapedKey}" ${key === fieldKey ? 'selected' : ''}>${label}</option>`;
+                        }).join('')}
                     </select>
                 </div>
                 
@@ -125,7 +126,10 @@ function performSearch() {
         const condition = conditionSelect.value;
         const value = valueInput.value.trim();
         
-        if (fieldName && condition) {
+        // Декодируем HTML-сущности, если они есть
+        const decodedFieldName = fieldName ? fieldName.replace(/&quot;/g, '"') : '';
+        
+        if (decodedFieldName && condition) {
             let sqlCondition = '';
             
             switch (condition) {
@@ -133,21 +137,21 @@ function performSearch() {
                     if (value) {
                         // Экранируем одинарные кавычки и другие специальные символы
                         const escapedValue = value.replace(/'/g, "''").replace(/[%_]/g, '\\$&');
-                        sqlCondition = `${fieldName} ILIKE '%${escapedValue}%'`;
+                        sqlCondition = `${decodedFieldName} ILIKE '%${escapedValue}%'`;
                     }
                     break;
                 case 'starts_with':
                     if (value) {
                         // Экранируем одинарные кавычки и другие специальные символы
                         const escapedValue = value.replace(/'/g, "''").replace(/[%_]/g, '\\$&');
-                        sqlCondition = `${fieldName} ILIKE '${escapedValue}%'`;
+                        sqlCondition = `${decodedFieldName} ILIKE '${escapedValue}%'`;
                     }
                     break;
                 case 'not_empty':
-                    sqlCondition = `${fieldName} IS NOT NULL AND ${fieldName} != ''`;
+                    sqlCondition = `${decodedFieldName} IS NOT NULL AND ${decodedFieldName} != ''`;
                     break;
                 case 'empty':
-                    sqlCondition = `(${fieldName} IS NULL OR ${fieldName} = '')`;
+                    sqlCondition = `(${decodedFieldName} IS NULL OR ${decodedFieldName} = '')`;
                     break;
             }
             
