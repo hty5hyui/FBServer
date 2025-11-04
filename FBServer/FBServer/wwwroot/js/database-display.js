@@ -100,6 +100,7 @@ function displayDatabaseData(data) {
                         <th scope="col">Подписчики</th>
                         <th scope="col">Мобильный</th>
                         <th scope="col">Email</th>
+                        <th scope="col">Флаги</th>
                         <th scope="col">Действия</th>
                     </tr>
                 </thead>
@@ -115,18 +116,7 @@ function displayDatabaseData(data) {
                             </td>
                             <td class="text-center text-dark-400 font-medium">${recordNumber}</td>
                             <td class="font-medium text-white">
-                                <div class="flex items-center gap-2">
-                                    <span>${item.fio || 'Не указано'}</span>
-                                    ${hasFlags ? `
-                                    <div class="relative group">
-                                        <i data-feather="flag" class="w-4 h-4 text-yellow-400 cursor-help"></i>
-                                        <div class="absolute bottom-full left-0 mb-2 bg-dark-800 border border-dark-600 rounded-lg p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 min-w-48 max-w-xs">
-                                            <div class="text-xs font-medium text-yellow-300 mb-2">Флаги:</div>
-                                            <div class="text-sm text-white space-y-1">${item.flags.map(flag => `<div>• ${flag}</div>`).join('')}</div>
-                                        </div>
-                                    </div>
-                                    ` : ''}
-                                </div>
+                                <span>${item.fio || 'Не указано'}</span>
                             </td>
                             <td>
                                 <a href="${item.link}" target="_blank" class="text-blue-400 hover:text-blue-300 underline">
@@ -136,6 +126,17 @@ function displayDatabaseData(data) {
                             <td class="text-dark-300">${item.subscribers || 'Не указано'}</td>
                             <td class="text-dark-300">${item.mobile || 'Не указано'}</td>
                             <td class="text-dark-300">${item.email || 'Не указано'}</td>
+                            <td class="text-center">
+                                ${hasFlags ? `
+                                <div class="relative group inline-block">
+                                    <i data-feather="flag" class="w-6 h-6 text-yellow-400 cursor-help"></i>
+                                    <div class="absolute bottom-full left-0 mb-2 bg-dark-800 border border-dark-600 rounded-lg p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 min-w-48 max-w-xs">
+                                        <div class="text-xs font-medium text-yellow-300 mb-2">Флаги:</div>
+                                        <div class="text-sm text-white space-y-1">${item.flags.map(flag => `<div>• ${flag}</div>`).join('')}</div>
+                                    </div>
+                                </div>
+                                ` : '<span class="text-dark-400">—</span>'}
+                            </td>
                             <td>
                                 <button class="script-btn script-view bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors" data-user-id="${item.userId}">
                                     <i data-feather="eye" class="w-4 h-4"></i>
